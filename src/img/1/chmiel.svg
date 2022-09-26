@@ -1,0 +1,19 @@
+<svg version="1.1" id="Warstwa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="141.73px" height="141.73px" viewBox="0 0 141.73 141.73" enable-background="new 0 0 141.73 141.73" xml:space="preserve">
+	<circle fill="#2E1C45" cx="71.865" cy="71.865" r="65.635" />
+	<g>
+
+		<path fill="none" stroke="#8BC062" stroke-width="5.6693" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M71.314,54.538c0,0,6.213-27.502-20.503-25.145" />
+
+		<path fill="none" stroke="#8BC062" stroke-width="5.6693" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M94.86,79.146c0-13.126-10.641-23.766-23.766-23.766c-13.126,0-23.766,10.64-23.766,23.766c0,0.862,0.049,1.714,0.139,2.552
+		c-0.092,0.432-0.139,0.877-0.139,1.337c0,14.609,9.52,27.365,23.677,34.191c14.148-6.826,23.669-19.582,23.669-34.191
+		c0-0.231-0.013-0.459-0.035-0.684C94.78,81.302,94.86,80.234,94.86,79.146z" />
+
+		<polyline fill="none" stroke="#8BC062" stroke-width="5.6693" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+		47.329,83.035 56.469,75.923 69.061,86.303 81.719,75.923 94.628,84.739 	" />
+
+		<polyline fill="none" stroke="#8BC062" stroke-width="5.6693" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+		53.209,102.095 60.426,94.571 69.611,104.952 78.845,94.571 88.048,103.186 	" />
+	</g>
+</svg>
