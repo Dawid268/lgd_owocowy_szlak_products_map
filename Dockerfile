@@ -25,6 +25,9 @@ RUN apk add --no-cache curl
 # Copy custom nginx configuration
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
+# Remove default nginx configuration that conflicts with our setup
+RUN rm -f /etc/nginx/conf.d/default.conf
+
 # Copy built application
 COPY --from=builder /app/dist /usr/share/nginx/html
 
