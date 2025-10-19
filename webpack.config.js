@@ -54,9 +54,8 @@ module.exports = {
           from: "src/img/1", 
           to: "img/1",
           filter: (resourcePath) => {
-            return resourcePath.endsWith('data.json') || 
-                   resourcePath.endsWith('.webp') || 
-                   resourcePath.endsWith('.svg');
+            // Copy all files from src/img/1 directory
+            return true;
           }
         },
       ],
