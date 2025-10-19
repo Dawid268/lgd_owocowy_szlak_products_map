@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    container_name: lgd-map-test
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Labels for Traefik - TEST VERSION (HTTP only, no SSL)
+    labels:
+      # Enable Traefik for this service
+      - "traefik.enable=true"
+      
+      # HTTP router - HTTP only for testing
+      - "traefik.http.routers.lgd-map-test.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map-test.entrypoints=web"
+      
+      # Service configuration
+      - "traefik.http.services.lgd-map-test.loadbalancer.server.port=8080"
+      
+      # Middleware configuration
+      - "traefik.http.middlewares.lgd-map-stripprefix.stripprefix.prefixes=/lgd-demo"
+      
+      # Apply middleware
+      - "traefik.http.routers.lgd-map-test.middlewares=lgd-map-stripprefix"
+    
+    # Networks
+    networks:
+      - traefik-public
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik-public:
+    external: true
