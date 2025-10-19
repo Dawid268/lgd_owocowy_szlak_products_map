@@ -6,7 +6,7 @@ services:
     container_name: lgd-map-demo
     restart: unless-stopped
     
-    # Resource limits
+    # Resource limits (for Docker Swarm)
     deploy:
       resources:
         limits:
@@ -34,7 +34,7 @@ services:
       # Enable Traefik for this service
       - "traefik.enable=true"
       
-      # HTTP router
+      # HTTP router - FIXED CONFIGURATION
       - "traefik.http.routers.lgd-map.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
       - "traefik.http.routers.lgd-map.entrypoints=websecure"
       - "traefik.http.routers.lgd-map.tls=true"
@@ -51,8 +51,12 @@ services:
       - "traefik.http.middlewares.lgd-map-security.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.lgd-map-compress.compress=true"
       
-      # Apply middleware in correct order
+      # Apply middleware in correct order - FIXED
       - "traefik.http.routers.lgd-map.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
+      
+      # Debug labels
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.lgd-map.priority=100"
     
     # Networks
     networks:
