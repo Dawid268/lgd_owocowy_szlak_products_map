@@ -644,6 +644,361 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - ❌ **Liability** not covered
 - ❌ **Warranty** not provided
 
+## 🐳 Docker & Deployment
+
+### 🚀 Containerization
+
+The application is fully containerized using Docker with a multi-stage build process for optimal performance and security.
+
+#### Docker Configuration
+
+- **Multi-stage Build**: Node.js builder + Nginx production server
+- **Security**: Non-root user execution, minimal Alpine Linux base
+- **Performance**: Optimized image size with proper caching
+- **Health Checks**: Built-in container health monitoring
+
+#### Docker Files
+
+```
+├── 📄 Dockerfile                 # Multi-stage Docker build
+├── 📄 docker-compose.yml        # Production deployment with Traefik
+├── 📄 docker-compose-fixed.yml  # Fixed Traefik routing configuration
+├── 📄 docker-compose-direct.yml # Direct access without path prefix
+├── 📄 docker-compose-test.yml   # HTTP-only testing configuration
+└── 📁 docker/
+    └── 📄 nginx.conf            # Production Nginx configuration
+```
+
+### 🏗️ Build Process
+
+#### Multi-Stage Dockerfile
+
+```dockerfile
+# Stage 1: Builder
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --ignore-scripts
+COPY . .
+RUN npm run build:prod
+
+# Stage 2: Production
+FROM nginx:alpine AS production
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+USER nextjs
+EXPOSE 8080
+```
+
+#### Build Features
+
+- **Node.js 18**: Latest LTS version for building
+- **Nginx Alpine**: Lightweight production server
+- **Asset Optimization**: Minified CSS/JS, WebP images
+- **Security Headers**: HSTS, CSP, XSS protection
+- **Health Checks**: Container monitoring
+- **Non-root User**: Security best practices
+
+### 🌐 Traefik Integration
+
+The application is designed to work seamlessly with Traefik reverse proxy for automatic SSL certificates and routing.
+
+#### Traefik Configuration
+
+```yaml
+labels:
+  # Enable Traefik
+  - "traefik.enable=true"
+  
+  # Routing rules
+  - "traefik.http.routers.lgd-map.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+  - "traefik.http.routers.lgd-map.entrypoints=websecure"
+  - "traefik.http.routers.lgd-map.tls=true"
+  - "traefik.http.routers.lgd-map.tls.certresolver=letsencrypt"
+  
+  # Middleware configuration
+  - "traefik.http.middlewares.lgd-map-stripprefix.stripprefix.prefixes=/lgd-demo"
+  - "traefik.http.middlewares.lgd-map-security.headers.frameDeny=true"
+  - "traefik.http.middlewares.lgd-map-compress.compress=true"
+  
+  # Apply middleware
+  - "traefik.http.routers.lgd-map.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
+```
+
+#### Traefik Features
+
+- **Automatic SSL**: Let's Encrypt certificates
+- **Path Stripping**: Remove `/lgd-demo` prefix
+- **Security Headers**: HSTS, CSP, XSS protection
+- **Compression**: Gzip compression
+- **Load Balancing**: Multiple container support
+
+### 🐳 Portainer Deployment
+
+#### Quick Setup
+
+1. **Login to Portainer**
+2. **Go to Stacks** → **Add Stack**
+3. **Name**: `lgd-map-demo`
+4. **Copy docker-compose configuration**
+5. **Deploy the Stack**
+
+#### Available Configurations
+
+##### Production Configuration (`docker-compose-fixed.yml`)
+
+```yaml
+# URL: https://57.129.41.248/lgd-demo
+# Features: SSL, path prefix, security headers, compression
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    labels:
+      - "traefik.http.routers.lgd-map-fixed.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map-fixed.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
+```
+
+##### Direct Access Configuration (`docker-compose-direct.yml`)
+
+```yaml
+# URL: https://57.129.41.248
+# Features: SSL, direct access, security headers, compression
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    labels:
+      - "traefik.http.routers.lgd-map-direct.rule=Host(`57.129.41.248`)"
+      - "traefik.http.routers.lgd-map-direct.middlewares=lgd-map-security,lgd-map-compress"
+```
+
+##### Test Configuration (`docker-compose-test.yml`)
+
+```yaml
+# URL: http://57.129.41.248/lgd-demo
+# Features: HTTP only, path prefix, simplified for testing
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    labels:
+      - "traefik.http.routers.lgd-map-test.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map-test.entrypoints=web"
+```
+
+### 🔄 CI/CD Pipeline
+
+#### GitHub Actions Workflow
+
+The application includes a complete CI/CD pipeline with GitHub Actions:
+
+```yaml
+name: Build and Deploy LGD Map
+
+on:
+  push:
+    branches: [main, staging]
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+```
+
+#### Pipeline Features
+
+- **Automated Builds**: On push to staging/main branches
+- **Docker Registry**: GitHub Container Registry (GHCR)
+- **Security Scanning**: Trivy vulnerability scanner
+- **Portainer Integration**: Webhook deployment
+- **Multi-platform**: Linux AMD64 support
+
+#### Deployment Triggers
+
+- **Staging**: Push to `staging` branch → Deploy to demo environment
+- **Production**: Push to `main` branch → Deploy to production
+- **Releases**: Git tags → Create release versions
+
+### 🔧 Environment Configuration
+
+#### Required Environment Variables
+
+```yaml
+environment:
+  - NODE_ENV=production
+  - PORT=8080
+```
+
+#### GitHub Secrets (for CI/CD)
+
+```bash
+# Portainer Webhook URLs
+PORTAINER_STAGING_WEBHOOK_1=https://your-portainer.com/api/webhooks/your-webhook-id
+PORTAINER_STAGING_WEBHOOK_2=https://your-portainer.com/api/webhooks/your-webhook-id-2
+PORTAINER_PRODUCTION_WEBHOOK=https://your-portainer.com/api/webhooks/your-production-webhook
+```
+
+### 🌐 Production URLs
+
+#### Demo Environment
+
+- **Main URL**: `https://57.129.41.248/lgd-demo`
+- **Health Check**: `https://57.129.41.248/lgd-demo/health`
+- **Debug Endpoint**: `https://57.129.41.248/lgd-demo/debug`
+
+#### Direct Access (Alternative)
+
+- **Main URL**: `https://57.129.41.248`
+- **Health Check**: `https://57.129.41.248/health`
+- **Debug Endpoint**: `https://57.129.41.248/debug`
+
+### 📊 Monitoring & Health Checks
+
+#### Container Health
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+```
+
+#### Health Endpoints
+
+- **Container Health**: Docker built-in health checks
+- **Application Health**: `/health` endpoint
+- **Debug Info**: `/debug` endpoint
+- **Traefik Health**: Automatic through Traefik
+
+#### Logging
+
+```yaml
+logging:
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+```
+
+### 🛠️ Troubleshooting
+
+#### Common Issues
+
+##### 404 Errors
+
+**Problem**: Application returns 404 errors
+
+**Solutions**:
+1. Check Traefik middleware configuration
+2. Verify path prefix stripping
+3. Test with HTTP-only configuration
+4. Check container health status
+
+##### SSL Certificate Issues
+
+**Problem**: SSL/TLS certificate errors
+
+**Solutions**:
+1. Use HTTP-only configuration for testing
+2. Check Let's Encrypt certificate resolver
+3. Verify domain configuration
+4. Check Traefik logs
+
+##### Container Won't Start
+
+**Problem**: Container fails to start
+
+**Solutions**:
+1. Check container logs in Portainer
+2. Verify image exists in registry
+3. Check resource limits
+4. Verify network configuration
+
+#### Debug Commands
+
+```bash
+# Check container status
+docker ps | grep lgd-map
+
+# View container logs
+docker logs lgd-map-demo
+
+# Test health endpoint
+curl https://57.129.41.248/lgd-demo/health
+
+# Test debug endpoint
+curl https://57.129.41.248/lgd-demo/debug
+```
+
+#### Portainer Debugging
+
+1. **Container Logs**: Check real-time logs
+2. **Network**: Verify network connectivity
+3. **Health**: Check container health status
+4. **Resources**: Monitor CPU/memory usage
+
+### 🔒 Security Features
+
+#### Container Security
+
+- **Non-root User**: Application runs as `nextjs` user
+- **Minimal Base Image**: Alpine Linux for reduced attack surface
+- **Security Scanning**: Trivy vulnerability scanner in CI/CD
+- **Resource Limits**: Memory and CPU constraints
+
+#### Network Security
+
+- **HTTPS Only**: Automatic SSL/TLS encryption
+- **Security Headers**: HSTS, CSP, XSS protection
+- **Rate Limiting**: Request throttling
+- **Frame Protection**: Clickjacking prevention
+
+#### Application Security
+
+- **Input Validation**: All data validated and sanitized
+- **XSS Prevention**: No innerHTML usage
+- **Type Safety**: TypeScript compile-time checking
+- **Safe DOM Manipulation**: Using createElement and textContent
+
+### 📈 Performance Optimization
+
+#### Container Performance
+
+- **Multi-stage Build**: Reduced image size
+- **Asset Optimization**: Minified CSS/JS, WebP images
+- **Caching**: Browser caching with content hashing
+- **Compression**: Gzip compression enabled
+
+#### Resource Management
+
+```yaml
+deploy:
+  resources:
+    limits:
+      memory: 256M
+      cpus: '0.5'
+    reservations:
+      memory: 128M
+      cpus: '0.25'
+```
+
+#### Performance Monitoring
+
+- **Health Checks**: Every 30 seconds
+- **Resource Usage**: CPU and memory monitoring
+- **Response Times**: Traefik metrics
+- **Error Rates**: Application logging
+
 ## 📞 Support
 
 ### Getting Help
