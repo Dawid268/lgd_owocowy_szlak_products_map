@@ -14,7 +14,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name | downcase }}/lgd-map
+  IMAGE_NAME: dawid268/lgd_owocowy_szlak_products_map/lgd-map
 
 jobs:
   build:
