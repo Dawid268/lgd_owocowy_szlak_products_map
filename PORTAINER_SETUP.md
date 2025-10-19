@@ -14,7 +14,7 @@ This guide explains how to deploy the LGD Map application using Portainer with T
 4. **Copy the contents of `docker-compose.yml`**
 5. **Set Environment Variables**:
    ```
-   GITHUB_REPOSITORY=your-username/lgd_owocowy_szlak_products_map
+   GITHUB_REPOSITORY=dawid268/lgd_owocowy_szlak_products_map
    ```
 6. **Deploy the Stack**
 
