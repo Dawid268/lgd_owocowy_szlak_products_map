@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    container_name: lgd-map-debug
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Minimal Traefik configuration for debugging
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      
+      # Very simple routing rule
+      - "traefik.http.routers.lgd-map-debug.rule=Host(`57.129.41.248`)"
+      - "traefik.http.routers.lgd-map-debug.entrypoints=websecure"
+      - "traefik.http.routers.lgd-map-debug.tls=true"
+      - "traefik.http.routers.lgd-map-debug.tls.certresolver=letsencrypt"
+      
+      # Service configuration
+      - "traefik.http.services.lgd-map-debug.loadbalancer.server.port=8080"
+    
+    # Networks
+    networks:
+      - traefik-public
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik-public:
+    external: true

@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    container_name: lgd-map-simple-test
+    restart: unless-stopped
+    
+    # Direct port mapping for testing
+    ports:
+      - "8081:8080"
+    
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # No Traefik labels - direct access
+    # This will help us test if the container itself works
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
