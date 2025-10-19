@@ -34,11 +34,17 @@ services:
       # Enable Traefik for this service
       - "traefik.enable=true"
       
-      # HTTP router - FIXED CONFIGURATION
-      - "traefik.http.routers.lgd-map.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
-      - "traefik.http.routers.lgd-map.entrypoints=websecure"
-      - "traefik.http.routers.lgd-map.tls=true"
-      - "traefik.http.routers.lgd-map.tls.certresolver=letsencrypt"
+      # HTTP router (HTTP) - FIXED CONFIGURATION
+      - "traefik.http.routers.lgd-map-http.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map-http.entrypoints=web"
+      - "traefik.http.routers.lgd-map-http.middlewares=lgd-map-stripprefix,lgd-map-compress"
+      
+      # HTTPS router (HTTPS) - FIXED CONFIGURATION
+      - "traefik.http.routers.lgd-map-https.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map-https.entrypoints=websecure"
+      - "traefik.http.routers.lgd-map-https.tls=true"
+      - "traefik.http.routers.lgd-map-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.lgd-map-https.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
       
       # Service configuration
       - "traefik.http.services.lgd-map.loadbalancer.server.port=8080"
@@ -51,12 +57,10 @@ services:
       - "traefik.http.middlewares.lgd-map-security.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.lgd-map-compress.compress=true"
       
-      # Apply middleware in correct order - FIXED
-      - "traefik.http.routers.lgd-map.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
-      
       # Debug labels
       - "traefik.docker.network=traefik-public"
-      - "traefik.http.routers.lgd-map.priority=100"
+      - "traefik.http.routers.lgd-map-http.priority=100"
+      - "traefik.http.routers.lgd-map-https.priority=100"
     
     # Networks
     networks:
