@@ -1,0 +1,180 @@
+name: Build and Deploy LGD Map
+
+on:
+  push:
+    branches: [main, staging]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress builds when new push arrives
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/lgd-map
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write # Wymagane do uploadu wyników skanu Trivy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test --if-present
+
+      - name: Build application
+        run: npm run build:prod
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=production,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/staging' }}
+            type=semver,pattern={{version}}
+            type=sha,prefix=sha-
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            BUILD_SHA=${{ github.sha }}
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+
+      - name: Test Container
+        if: github.event_name == 'pull_request'
+        run: |
+          docker run --rm -d --name test-container -p 8080:8080 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          sleep 10
+          curl -f http://localhost:8080/health || exit 1
+          docker stop test-container
+          echo "✅ Container test passed"
+
+      # --- Skanowanie Obrazu pod kątem Vulnerabilites ---
+      - name: Run Trivy vulnerability scanner
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      # --- Portainer Deployment Webhooks ---
+      # Configure these URLs in GitHub repository secrets:
+      # - PORTAINER_STAGING_WEBHOOK_1
+      # - PORTAINER_STAGING_WEBHOOK_2
+      # - PORTAINER_PRODUCTION_WEBHOOK
+
+      - name: Trigger Staging Webhook 1
+        if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_STAGING_WEBHOOK_1 }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            curl -X POST -f "$WEBHOOK_URL" || {
+              echo "⚠️ Staging webhook 1 failed but build succeeded"
+              exit 0
+            }
+            echo "✅ Staging webhook 1 triggered"
+          else
+            echo "⚠️ PORTAINER_STAGING_WEBHOOK_1 not configured, skipping"
+          fi
+
+      - name: Trigger Staging Webhook 2
+        if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_STAGING_WEBHOOK_2 }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            curl -X POST -f "$WEBHOOK_URL" || {
+              echo "⚠️ Staging webhook 2 failed but build succeeded"
+              exit 0
+            }
+            echo "✅ Staging webhook 2 triggered"
+          else
+            echo "⚠️ PORTAINER_STAGING_WEBHOOK_2 not configured, skipping"
+          fi
+
+      - name: Trigger Production Webhook
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_PRODUCTION_WEBHOOK }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            curl -X POST -f "$WEBHOOK_URL" || {
+              echo "⚠️ Production webhook failed but build succeeded"
+              exit 0
+            }
+            echo "✅ Production webhook triggered"
+          else
+            echo "⚠️ PORTAINER_PRODUCTION_WEBHOOK not configured, skipping"
+          fi
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "🎯 LGD Map build completed"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "📋 PR build: tested locally"
+          else
+            echo "🚀 Production build: pushed to registry"
+            echo "📦 Images:"
+            echo "${{ steps.meta.outputs.tags }}" | sed 's/^/  - /'
+            echo ""
+            echo "🌐 Demo URL: https://57.129.41.248/lgd-demo"
+          fi

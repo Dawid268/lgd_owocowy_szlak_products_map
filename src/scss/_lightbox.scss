@@ -19,6 +19,11 @@
     object-fit: contain;
     border-radius: $border-radius-xl;
     box-shadow: 0 4px 20px $shadow-heavy;
+
+    @include mobile {
+      max-width: 95%;
+      max-height: 85%;
+    }
   }
 
   &__close {
@@ -30,6 +35,17 @@
     font-weight: bold;
     cursor: pointer;
     z-index: $z-index-lightbox-content;
+    min-width: $touch-target-min;
+    min-height: $touch-target-min;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @include mobile {
+      top: $spacing-md;
+      right: $spacing-md;
+      font-size: 24px;
+    }
 
     &:hover {
       color: $gray-hover;
@@ -52,6 +68,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 60px;
+    height: 60px;
+    line-height: 1;
+    text-align: center;
+    min-width: $touch-target-min;
+    min-height: $touch-target-min;
+
+    @include mobile {
+      width: 50px;
+      height: 50px;
+      font-size: 32px;
+    }
 
     &:hover {
       background-color: $overlay-light;
@@ -59,10 +87,18 @@
 
     &--prev {
       left: $spacing-xxl;
+
+      @include mobile {
+        left: $spacing-md;
+      }
     }
 
     &--next {
       right: $spacing-xxl;
+
+      @include mobile {
+        right: $spacing-md;
+      }
     }
 
     &--hidden {
@@ -76,10 +112,16 @@
     left: 50%;
     transform: translateX(-50%);
     color: $white;
-    font-size: $font-size-counter;
+    font-size: $font-size-medium;
     background-color: $overlay-light;
     padding: $carousel-padding $spacing-lg;
     border-radius: $border-radius-pill;
     z-index: $z-index-lightbox-content;
+
+    @include mobile {
+      bottom: $spacing-lg;
+      font-size: 14px;
+      padding: $spacing-sm $spacing-md;
+    }
   }
 }

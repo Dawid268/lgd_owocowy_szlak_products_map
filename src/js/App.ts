@@ -5,6 +5,8 @@ import { MapService } from './services/MapService';
 import { CardService } from './services/CardService';
 import { IconService } from './services/IconService';
 import { DataValidator, RawPointData } from './utils/DataValidator';
+import { ErrorHandler } from './utils/ErrorHandler';
+import { LazyLoader } from './utils/LazyLoader';
 
 export class App {
   private mapService!: MapService;
@@ -33,7 +35,9 @@ export class App {
         this.cardService = new CardService('.cards-container');
         this.initializeData();
         this.initializeApp();
+        LazyLoader.initialize();
       } catch (error) {
+        ErrorHandler.handleMapError(error as Error);
       }
     };
 
@@ -41,28 +45,32 @@ export class App {
   }
 
   private initializeData(): void {
-    this.points = points.map((rawPoint: RawPointData) => {
-      const validatedData = DataValidator.validatePointData(rawPoint);
-      
-      return new Point(
-        validatedData.latitude,
-        validatedData.longitude,
-        validatedData.name,
-        validatedData.addresses,
-        validatedData.emails,
-        validatedData.phoneNumbers,
-        validatedData.product,
-        validatedData.image,
-        validatedData.images,
-        validatedData.facebook,
-        validatedData.webpage,
-        validatedData.icon,
-        validatedData.legendName,
-        validatedData.legendSubName,
-        validatedData.description,
-        validatedData.color
-      );
-    });
+    try {
+      this.points = points.map((rawPoint: RawPointData) => {
+        const validatedData = DataValidator.validatePointData(rawPoint);
+
+        return new Point(
+          validatedData.latitude,
+          validatedData.longitude,
+          validatedData.name,
+          validatedData.addresses,
+          validatedData.emails,
+          validatedData.phoneNumbers,
+          validatedData.product,
+          validatedData.image,
+          validatedData.images,
+          validatedData.facebook,
+          validatedData.webpage,
+          validatedData.icon,
+          validatedData.legendName,
+          validatedData.legendSubName,
+          validatedData.description,
+          validatedData.color
+        );
+      });
+    } catch (error) {
+      ErrorHandler.handleDataError(error as Error, 'App.initializeData');
+    }
   }
 
   private initializeApp(): void {
@@ -77,10 +85,10 @@ export class App {
     if (footer) {
       const footerContent = document.createElement('div');
       footerContent.className = 'footer__content';
-      
+
       const paragraph = document.createElement('p');
       paragraph.textContent = '© 2024 LGD Owocowy Szlak. Wszystkie prawa zastrzeżone.';
-      
+
       footerContent.appendChild(paragraph);
       footer.appendChild(footerContent);
     }

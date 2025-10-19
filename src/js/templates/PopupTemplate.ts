@@ -11,9 +11,7 @@ export class PopupTemplate {
   }
 
   static generateProduct(product: string): string {
-    return product
-      ? `<span class="data-container--product">${product}</span>`
-      : '';
+    return product ? `<span class="data-container--product">${product}</span>` : '';
   }
 
   static generateFacebook(facebook: string | null): string {
@@ -75,12 +73,12 @@ export class PopupTemplate {
     return `
       <div class="popup-container">
         <div class="data__title__container">
-          <img class="data__title__container--icon" src="${point.icon}" alt="${point.name}">
           <div class="data__title__container--name" style="color: ${point.color}">${point.name}</div>
           ${addressContainer ? `<div class="data__title__container--address">${addressContainer}</div>` : ''}
           ${phoneContainer ? `<div class="data__title__container--phone">${phoneContainer}</div>` : ''}
           ${emailsContainer ? `<div class="data__title__container--email">${emailsContainer}</div>` : ''}
-          ${(webpage || facebook) ? `<div class="data__title__container--social">${webpage} ${facebook}</div>` : ''}
+          ${webpage || facebook ? `<div class="data__title__container--social">${webpage} ${facebook}</div>` : ''}
+          ${product ? `<div class="data__title__container--product">${product}</div>` : ''}
         </div>
         ${image}
       </div>

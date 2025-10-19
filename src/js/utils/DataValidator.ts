@@ -57,7 +57,7 @@ export class DataValidator {
       webpage: this.validateString(rawData.webpage),
       icon: this.validateString(rawData.icon),
       description: this.validateString(rawData.description),
-      color: this.validateString(rawData.color, this.DEFAULT_COLOR)
+      color: this.validateString(rawData.color, this.DEFAULT_COLOR),
     };
   }
 
@@ -68,7 +68,10 @@ export class DataValidator {
     return defaultValue;
   }
 
-  private static validateString(value: unknown, defaultValue: string = this.DEFAULT_EMPTY_STRING): string {
+  private static validateString(
+    value: unknown,
+    defaultValue: string = this.DEFAULT_EMPTY_STRING
+  ): string {
     if (typeof value === 'string') {
       return value.trim();
     }

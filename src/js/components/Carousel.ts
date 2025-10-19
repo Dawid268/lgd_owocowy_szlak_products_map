@@ -41,7 +41,8 @@ export class Carousel {
         }).mount();
 
         window.dispatchEvent(new Event('resize'));
-      } catch (error) {
+      } catch {
+        // Ignore carousel initialization errors
       }
     }, 50);
   }

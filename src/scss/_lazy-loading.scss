@@ -1,0 +1,17 @@
+.lazy-image {
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0.7;
+
+  &.lazy-loaded {
+    opacity: 1;
+  }
+}
+
+.lazy-image[data-src] {
+  filter: blur(2px);
+  transition: filter 0.3s ease-in-out;
+
+  &.lazy-loaded {
+    filter: none;
+  }
+}

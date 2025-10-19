@@ -6,6 +6,11 @@
   margin-top: $spacing-lg;
   max-width: $map-footer-max-width;
 
+  @include mobile {
+    margin-top: $spacing-md;
+    padding: 0 $spacing-sm;
+  }
+
   &__logo {
     display: flex;
     width: 100%;
@@ -13,28 +18,51 @@
     flex-wrap: nowrap;
     gap: $footer-gap;
 
+    @include mobile {
+      flex-wrap: wrap;
+      gap: $spacing-md;
+    }
+
     &--item {
       flex: 1 1 $footer-item-max-width;
       max-width: $footer-item-max-width;
       min-width: $footer-item-min-width;
       height: auto;
 
+      @include mobile {
+        flex: 1 1 auto;
+        max-width: 80px;
+        min-width: 60px;
+      }
+
       &--test {
         flex: 1 1 $footer-item-large-max-width;
         max-width: $footer-item-large-max-width;
         min-width: $footer-item-large-min-width;
         height: auto;
+
+        @include mobile {
+          flex: 1 1 auto;
+          max-width: 100px;
+          min-width: 80px;
+        }
       }
     }
   }
 
   &__message {
     margin-top: $spacing-lg;
-    font-size: $font-size-sm;
+    font-size: $font-size-text;
     text-align: center;
 
-    @media screen and (max-width: $breakpoint-tablet) {
-      font-size: $font-size-lg;
+    @include mobile {
+      margin-top: $spacing-md;
+      font-size: $font-size-tiny;
+      padding: 0 $spacing-sm;
+    }
+
+    @include tablet {
+      font-size: $font-size-medium;
     }
   }
 }
@@ -45,7 +73,7 @@
   text-align: center;
 
   &__content {
-    font-size: $font-size-sm;
+    font-size: $font-size-text;
     color: $text-color-light;
 
     p {

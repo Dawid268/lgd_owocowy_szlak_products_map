@@ -53,7 +53,7 @@ export class Point implements IPoint {
     legendName: string,
     legendSubName: string,
     description: string,
-    color = "#000000"
+    color = '#000000'
   ) {
     this.latitude = latitude;
     this.longitude = longitude;

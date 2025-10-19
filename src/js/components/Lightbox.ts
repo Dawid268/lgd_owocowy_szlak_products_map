@@ -9,6 +9,15 @@ export class Lightbox {
   constructor(images: string[], currentIndex: number = 0) {
     this.images = images;
     this.currentIndex = currentIndex;
+
+    // Validate currentIndex
+    if (this.currentIndex >= this.images.length) {
+      this.currentIndex = 0;
+    }
+    if (this.currentIndex < 0) {
+      this.currentIndex = 0;
+    }
+
     this.render();
     this.attachEventListeners();
   }
@@ -19,13 +28,20 @@ export class Lightbox {
       existingLightbox.remove();
     }
 
+    // Validate images array
+    if (!this.images || this.images.length === 0) {
+      return;
+    }
+
     this.container = document.createElement('div');
     this.container.className = 'lightbox';
-    
+
+    const currentImage = this.images[this.currentIndex];
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(
       LightboxTemplate.generate(
-        this.images[this.currentIndex],
+        this.normalizeImagePath(currentImage),
         this.currentIndex,
         this.images.length,
         this.images.length > 1
@@ -33,11 +49,11 @@ export class Lightbox {
       'text/html'
     );
     const fragment = document.createDocumentFragment();
-    
+
     Array.from(doc.body.children).forEach(child => {
       fragment.appendChild(child);
     });
-    
+
     this.container.appendChild(fragment);
 
     document.body.appendChild(this.container);
@@ -57,13 +73,13 @@ export class Lightbox {
 
     closeButton?.addEventListener('click', closeLightbox);
     lightboxImage?.addEventListener('click', closeLightbox);
-    
-    prevButton?.addEventListener('click', (e) => {
+
+    prevButton?.addEventListener('click', e => {
       e.stopPropagation();
       this.previous();
     });
-    
-    nextButton?.addEventListener('click', (e) => {
+
+    nextButton?.addEventListener('click', e => {
       e.stopPropagation();
       this.next();
     });
@@ -78,7 +94,7 @@ export class Lightbox {
         this.next();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeydown);
   }
 
@@ -101,9 +117,16 @@ export class Lightbox {
 
     const image = this.container.querySelector('.lightbox__image') as HTMLImageElement;
     const counter = this.container.querySelector('.lightbox__counter') as HTMLElement;
-    
-    if (image) image.src = this.images[this.currentIndex];
+
+    if (image) image.src = this.normalizeImagePath(this.images[this.currentIndex]);
     if (counter) counter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
+  }
+
+  private normalizeImagePath(path: string | undefined): string {
+    if (!path) {
+      return '';
+    }
+    return path.replace('./img/', '/img/');
   }
 
   public close(): void {

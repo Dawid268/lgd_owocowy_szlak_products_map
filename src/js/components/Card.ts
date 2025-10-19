@@ -2,6 +2,7 @@ import { Carousel } from './Carousel';
 import { Lightbox } from './Lightbox';
 import { IPoint } from '../types/Point';
 import { CardTemplate } from '../templates/CardTemplate';
+import { LazyLoader } from '../utils/LazyLoader';
 
 export class Card {
   private readonly point: IPoint;
@@ -17,15 +18,15 @@ export class Card {
 
   private createCardElement(): HTMLElement {
     const cardContainer = document.createElement('div');
-    
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(CardTemplate.generate(this.point), 'text/html');
     const fragment = document.createDocumentFragment();
-    
+
     Array.from(doc.body.children).forEach(child => {
       fragment.appendChild(child);
     });
-    
+
     cardContainer.appendChild(fragment);
     return cardContainer;
   }
@@ -35,7 +36,9 @@ export class Card {
       return;
     }
 
-    const carouselContainer = this.container.querySelector('.cards-container__item__carousel') as HTMLElement;
+    const carouselContainer = this.container.querySelector(
+      '.cards-container__item__carousel'
+    ) as HTMLElement;
 
     if (!carouselContainer) {
       return;
@@ -47,10 +50,12 @@ export class Card {
   private attachEventListeners(): void {
     setTimeout(() => {
       const slides = this.container.querySelectorAll('.glide__slide');
-      
+
       slides.forEach((slide, index) => {
         const img = slide.querySelector('img');
         if (img) {
+          LazyLoader.observeImage(img);
+
           img.addEventListener('click', (event: Event) => {
             event.stopPropagation();
             this.openLightbox(index);

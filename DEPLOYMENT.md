@@ -1,244 +1,207 @@
-# Instrukcje Deployment
+# 🚀 Deployment Guide - LGD Owocowy Szlak Map
 
-## 🚀 Przygotowanie do produkcji
+## 📋 Overview
 
-### 1. Build produkcyjny
+This guide explains how to deploy the LGD Map application using Docker containers with Traefik reverse proxy.
+
+## 🏗️ Architecture
+
+- **Frontend**: React/TypeScript application served by Nginx
+- **Container**: Docker with multi-stage build
+- **Reverse Proxy**: Traefik with automatic SSL certificates
+- **CI/CD**: GitHub Actions with automated builds and deployments
+
+## 🔧 Prerequisites
+
+### Server Requirements
+- Docker & Docker Compose installed
+- Traefik running with `traefik-public` network
+- Portainer for container management
+- GitHub repository with proper secrets configured
+
+### GitHub Secrets Required
+Configure these in your GitHub repository settings:
+
+```
+PORTAINER_STAGING_WEBHOOK_1=https://your-portainer.com/api/webhooks/your-webhook-id
+PORTAINER_STAGING_WEBHOOK_2=https://your-portainer.com/api/webhooks/your-webhook-id-2
+PORTAINER_PRODUCTION_WEBHOOK=https://your-portainer.com/api/webhooks/your-production-webhook
+```
+
+## 🚀 Deployment Process
+
+### 1. Automatic Deployment (Recommended)
+
+The application is automatically deployed when you push to specific branches:
+
+- **Staging**: Push to `staging` branch → Deploys to demo environment
+- **Production**: Push to `main` branch → Deploys to production environment
+
+### 2. Manual Deployment
+
+#### Build and Test Locally
 ```bash
+# Build the application
 npm run build:prod
+
+# Test with Docker Compose
+docker-compose -f docker-compose.local.yml up --build
+
+# Check if application is running
+curl http://localhost:8080/health
 ```
 
-### 2. Sprawdzenie build
+#### Deploy to Server
+1. Copy `docker-compose.yml` to your server
+2. Update the image tag if needed
+3. Deploy using Portainer or Docker Compose
+
 ```bash
-# Sprawdź czy wszystkie pliki zostały wygenerowane
-ls -la dist/
+# Using Docker Compose
+docker-compose up -d
 
-# Sprawdź rozmiary plików
-du -sh dist/*
+# Using Portainer
+# Import the docker-compose.yml as a new stack
 ```
 
-## 📁 Struktura plików produkcyjnych
+## 🌐 Access URLs
 
-```
-dist/
-├── index.html                    # Główny plik HTML
-├── css/
-│   └── styles.[hash].css        # Zminifikowane style
-├── js/
-│   ├── map.[hash].js            # Główny bundle aplikacji
-│   └── vendors.[hash].js        # Bundle z bibliotekami zewnętrznymi
-└── img/
-    └── 1/
-        └── data.json            # Dane aplikacji
-```
+### Demo Environment
+- **URL**: `https://57.129.41.248/lgd-demo`
+- **Health Check**: `https://57.129.41.248/lgd-demo/health`
 
-## 🌐 Deployment na serwer
+### Production Environment
+- **URL**: Configure based on your domain
+- **Health Check**: `https://your-domain.com/health`
 
-### Opcja 1: Upload przez FTP/SFTP
-1. Połącz się z serwerem przez FTP/SFTP
-2. Przejdź do katalogu publicznego (np. `/public_html/`, `/www/`)
-3. Skopiuj wszystkie pliki z katalogu `dist/`
-4. Upewnij się, że uprawnienia są ustawione na 644 dla plików i 755 dla katalogów
+## 🔧 Configuration
 
-### Opcja 2: Deployment przez Git
-```bash
-# Na serwerze
-git clone https://github.com/Dawid268/lgd_owocowy_szlak_products_map.git
-cd lgd_owocowy_szlak_products_map
-npm install
-npm run build:prod
-# Skopiuj zawartość dist/ do katalogu publicznego
-```
-
-### Opcja 3: CI/CD (GitHub Actions)
-Utwórz plik `.github/workflows/deploy.yml`:
-
+### Environment Variables
 ```yaml
-name: Deploy to Production
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm install
-    
-    - name: Build
-      run: npm run build:prod
-    
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          cd /path/to/website
-          git pull origin main
-          npm install
-          npm run build:prod
-          # Restart serwera jeśli potrzebne
+environment:
+  - NODE_ENV=production
+  - PORT=8080
 ```
 
-## ⚙️ Konfiguracja serwera
-
-### Apache (.htaccess)
-```apache
-RewriteEngine On
-
-# Cache static assets
-<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|webp)$">
-    ExpiresActive On
-    ExpiresDefault "access plus 1 year"
-</FilesMatch>
-
-# Gzip compression
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-</IfModule>
-
-# Security headers
-Header always set X-Content-Type-Options nosniff
-Header always set X-Frame-Options DENY
-Header always set X-XSS-Protection "1; mode=block"
+### Resource Limits
+```yaml
+deploy:
+  resources:
+    limits:
+      memory: 256M
+      cpus: '0.5'
+    reservations:
+      memory: 128M
+      cpus: '0.25'
 ```
 
-### Nginx
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /path/to/dist;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-
-    # Cache static assets
-    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|webp)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Security headers
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options DENY;
-    add_header X-XSS-Protection "1; mode=block";
-
-    # Handle SPA routing
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-## 🔍 Weryfikacja deployment
-
-### Sprawdzenie działania
-1. Otwórz stronę w przeglądarce
-2. Sprawdź czy mapa się ładuje
-3. Sprawdź czy wszystkie zdjęcia się wyświetlają
-4. Sprawdź czy legenda działa
-5. Sprawdź czy karuzela zdjęć działa
-
-### Sprawdzenie wydajności
-```bash
-# Sprawdź rozmiary plików
-curl -I https://your-domain.com/css/styles.[hash].css
-curl -I https://your-domain.com/js/map.[hash].js
-
-# Sprawdź czy gzip działa
-curl -H "Accept-Encoding: gzip" -I https://your-domain.com/css/styles.[hash].css
-```
-
-### Narzędzia do testowania
-- [Google PageSpeed Insights](https://pagespeed.web.dev/)
-- [GTmetrix](https://gtmetrix.com/)
-- [WebPageTest](https://www.webpagetest.org/)
-
-## 🐛 Rozwiązywanie problemów
-
-### Problem: Mapa się nie ładuje
-**Rozwiązanie:**
-- Sprawdź czy wszystkie pliki JS zostały załadowane
-- Sprawdź console w przeglądarce pod kątem błędów
-- Upewnij się, że serwer obsługuje pliki JS
-
-### Problem: Zdjęcia się nie wyświetlają
-**Rozwiązanie:**
-- Sprawdź ścieżki do zdjęć w `data.json`
-- Upewnij się, że wszystkie pliki obrazów zostały skopiowane
-- Sprawdź uprawnienia do plików
-
-### Problem: Style nie działają
-**Rozwiązanie:**
-- Sprawdź czy plik CSS został załadowany
-- Sprawdź ścieżki do plików CSS
-- Sprawdź czy serwer obsługuje pliki CSS
+### Traefik Labels
+The application is configured with Traefik labels for:
+- Automatic SSL certificates (Let's Encrypt)
+- Path prefix stripping (`/lgd-demo`)
+- Security headers
+- Compression
+- Rate limiting
 
 ## 📊 Monitoring
 
-### Logi serwera
-Monitoruj logi serwera pod kątem:
-- Błędów 404 (brakujące pliki)
-- Błędów 500 (błędy serwera)
-- Wolnych zapytań
+### Health Checks
+- **Container Health**: Built-in Docker health check
+- **Application Health**: `/health` endpoint
+- **Traefik Health**: Automatic through Traefik
 
-### Analytics
-Dodaj Google Analytics lub inne narzędzie do śledzenia:
-```html
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'GA_MEASUREMENT_ID');
-</script>
-```
-
-## 🔄 Aktualizacje
-
-### Automatyczne aktualizacje
+### Logs
 ```bash
-# Skrypt do automatycznego deployment
-#!/bin/bash
-cd /path/to/project
-git pull origin main
-npm install
-npm run build:prod
-# Skopiuj pliki do katalogu publicznego
-cp -r dist/* /path/to/public/
-echo "Deployment completed at $(date)"
+# View container logs
+docker logs lgd-map-demo
+
+# Follow logs in real-time
+docker logs -f lgd-map-demo
 ```
 
-### Backup
+## 🔒 Security Features
+
+### Container Security
+- Non-root user execution
+- Minimal Alpine Linux base image
+- No unnecessary packages
+- Regular security scans with Trivy
+
+### Network Security
+- HTTPS only (HTTP redirects to HTTPS)
+- Security headers (HSTS, CSP, XSS protection)
+- Rate limiting
+- Frame protection
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### 1. Container Won't Start
 ```bash
-# Backup przed aktualizacją
-cp -r /path/to/public /path/to/backup/$(date +%Y%m%d_%H%M%S)
+# Check container logs
+docker logs lgd-map-demo
+
+# Check if port is available
+netstat -tlnp | grep 8080
 ```
 
----
+#### 2. Application Not Accessible
+- Verify Traefik labels are correct
+- Check if `traefik-public` network exists
+- Ensure SSL certificates are valid
 
-**Uwaga:** Zawsze testuj deployment na środowisku staging przed wdrożeniem na produkcję!
+#### 3. Build Failures
+- Check GitHub Actions logs
+- Verify all dependencies are installed
+- Ensure `build:prod` script works locally
+
+### Debug Commands
+```bash
+# Test container locally
+docker-compose -f docker-compose.local.yml up --build
+
+# Check Traefik configuration
+docker exec traefik cat /etc/traefik/traefik.yml
+
+# Verify network connectivity
+docker network ls | grep traefik-public
+```
+
+## 📈 Performance Optimization
+
+### Caching
+- Static assets cached for 1 year
+- HTML files cached for 1 hour
+- Gzip compression enabled
+
+### Resource Management
+- Memory limit: 256MB
+- CPU limit: 0.5 cores
+- Automatic restart on failure
+
+## 🔄 Updates and Rollbacks
+
+### Updates
+1. Push changes to `staging` or `main` branch
+2. GitHub Actions automatically builds and deploys
+3. Portainer webhooks trigger container updates
+
+### Rollbacks
+1. Use Portainer to rollback to previous image
+2. Or manually update image tag in docker-compose.yml
+
+## 📞 Support
+
+For issues or questions:
+1. Check GitHub Actions logs
+2. Review container logs
+3. Verify Traefik configuration
+4. Test locally with docker-compose.local.yml
+
+## 🎯 Next Steps
+
+1. Configure your domain name
+2. Set up monitoring and alerting
+3. Implement backup strategies
+4. Consider scaling options if needed

@@ -3,9 +3,11 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+// const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const CompressionPlugin = require("compression-webpack-plugin");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
   mode: "production",
@@ -90,12 +92,21 @@ module.exports = {
           from: "src/img/1", 
           to: "img/1",
           filter: (resourcePath) => {
-            // Only copy data.json, skip other files that are handled by webpack
             return resourcePath.endsWith('data.json');
           }
         },
       ],
     }),
+    new CompressionPlugin({
+      test: /\.(js|css|html|svg)$/,
+      algorithm: 'gzip',
+      threshold: 8192,
+      minRatio: 0.8,
+    }),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    }),
+    new webpack.optimize.ModuleConcatenationPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -129,14 +140,31 @@ module.exports = {
     ],
     splitChunks: {
       chunks: "all",
+      minSize: 20000,
+      maxSize: 244000,
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendors",
           chunks: "all",
+          priority: 10,
+        },
+        leaflet: {
+          test: /[\\/]node_modules[\\/]leaflet[\\/]/,
+          name: "leaflet",
+          chunks: "all",
+          priority: 20,
+        },
+        glide: {
+          test: /[\\/]node_modules[\\/]@glidejs[\\/]/,
+          name: "glide",
+          chunks: "all",
+          priority: 20,
         },
       },
     },
+    usedExports: true,
+    sideEffects: false,
   },
   performance: {
     hints: "warning",

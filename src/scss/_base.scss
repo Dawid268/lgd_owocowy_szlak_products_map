@@ -1,7 +1,48 @@
 @import 'variables';
 
+// Global mobile optimizations
+* {
+  @include touch-device {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+// Allow text selection for specific elements
+p,
+span,
+div,
+a,
+button {
+  @include touch-device {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
 .main-container {
   width: $main-container-width;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+
+  @include mobile {
+    width: $container-mobile;
+    padding: 0 $spacing-sm;
+  }
+
+  @include tablet {
+    width: $container-tablet;
+    padding: 0 $spacing-md;
+  }
 }
 
 .data-container {
@@ -36,12 +77,12 @@
     margin-left: $spacing-sm;
 
     &--name {
-      font-size: $font-size-md;
+      font-size: $font-size-medium;
       font-weight: bold;
     }
 
     &--subname {
-      font-size: $font-size-sm;
+      font-size: $font-size-text;
     }
   }
 

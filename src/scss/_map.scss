@@ -1,10 +1,20 @@
 @import 'variables';
 
 #leaflet-map {
-  height: $map-height;
+  height: $map-height-desktop;
   width: 100%;
   z-index: $z-index-map;
   position: relative;
+
+  @include mobile {
+    height: $map-height-mobile;
+    min-height: 300px;
+  }
+
+  @include tablet {
+    height: $map-height-tablet;
+    min-height: 400px;
+  }
 }
 
 .leaflet-left .leaflet-control {

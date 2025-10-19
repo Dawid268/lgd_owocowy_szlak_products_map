@@ -32,12 +32,12 @@ $popup-min-width: 400px;
 $icon-size-small: 10px;
 $icon-size-medium: 15px;
 $icon-size-large: 30px;
-$icon-size-legend: 1.8em;
+$icon-size-legend: 2em;
 $icon-size-contact: 16px;
 $icon-size-close: 30px;
 $icon-size-nav: 40px;
 
-$spacing-xs: 5px;
+$spacing-xs: 2px;
 $spacing-sm: 5px;
 $spacing-md: 10px;
 $spacing-lg: 20px;
@@ -51,6 +51,7 @@ $border-radius-xl: 8px;
 $border-radius-full: 50%;
 $border-radius-pill: 20px;
 
+// Font sizes
 $font-size-xs: 0.975em;
 $font-size-sm: 1em;
 $font-size-md: 1.2em;
@@ -58,6 +59,15 @@ $font-size-lg: 1.5vw;
 $font-size-popup-xs: 10px;
 $font-size-popup-sm: 12px;
 $font-size-counter: 16px;
+
+// Responsive font sizes
+$font-size-name: 16px;
+$font-size-text: 12px;
+$font-size-small: 11px;
+$font-size-tiny: 10px;
+$font-size-medium: 14px;
+
+// Line heights
 $line-height-tight: 1.2;
 $line-height-normal: 1.4;
 
@@ -73,9 +83,17 @@ $z-index-lightbox-content: 10001;
 $opacity-legend: 0.55;
 $opacity-legend-hover: 1;
 
-$breakpoint-mobile: 480px;
-$breakpoint-tablet: 800px;
-$breakpoint-desktop: 1024px;
+// Breakpoints
+$breakpoint-xs: 320px; // Small phones
+$breakpoint-sm: 480px; // Large phones
+$breakpoint-md: 768px; // Tablets
+$breakpoint-lg: 1024px; // Small desktops
+$breakpoint-xl: 1200px; // Large desktops
+
+// Container sizes
+$container-mobile: 100%;
+$container-tablet: 90%;
+$container-desktop: 1200px;
 
 $carousel-gap: 15px;
 $carousel-margin: 20px;
@@ -89,3 +107,69 @@ $footer-item-max-width: 4vw;
 $footer-item-min-width: 4vw;
 $footer-item-large-max-width: 6vw;
 $footer-item-large-min-width: 6vw;
+
+// Responsive sizes
+$map-height-mobile: 50vh;
+$map-height-tablet: 60vh;
+$map-height-desktop: 681px;
+
+$popup-width-mobile: 90vw;
+$popup-width-tablet: 400px;
+$popup-width-desktop: 450px;
+
+$popup-image-mobile: 80px;
+$popup-image-tablet: 100px;
+$popup-image-desktop: 120px;
+
+$card-image-mobile: 120px;
+$card-image-tablet: 150px;
+$card-image-desktop: 170px;
+
+$legend-width-mobile: 100%;
+$legend-width-tablet: 170px;
+$legend-width-desktop: 200px;
+
+$legend-height-mobile: 40vh;
+$legend-height-tablet: 50vh;
+$legend-height-desktop: 40vh;
+
+// Touch targets (minimum 44px for accessibility)
+$touch-target-min: 44px;
+$touch-target-ideal: 48px;
+
+// Responsive mixins
+@mixin mobile {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-md}) {
+    @content;
+  }
+}
+
+@mixin mobile-tablet {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet-desktop {
+  @media (min-width: #{$breakpoint-sm}) {
+    @content;
+  }
+}
+
+@mixin touch-device {
+  @media (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}

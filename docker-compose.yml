@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  lgd-map:
+    image: ghcr.io/${GITHUB_REPOSITORY}/lgd-map:staging
+    container_name: lgd-map-demo
+    restart: unless-stopped
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Labels for Traefik
+    labels:
+      # Enable Traefik for this service
+      - "traefik.enable=true"
+      
+      # HTTP router
+      - "traefik.http.routers.lgd-map.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-map.entrypoints=websecure"
+      - "traefik.http.routers.lgd-map.tls=true"
+      - "traefik.http.routers.lgd-map.tls.certresolver=letsencrypt"
+      
+      # Service configuration
+      - "traefik.http.services.lgd-map.loadbalancer.server.port=8080"
+      
+      # Strip path prefix
+      - "traefik.http.middlewares.lgd-map-stripprefix.stripprefix.prefixes=/lgd-demo"
+      - "traefik.http.routers.lgd-map.middlewares=lgd-map-stripprefix"
+      
+      # Security headers
+      - "traefik.http.middlewares.lgd-map-security.headers.frameDeny=true"
+      - "traefik.http.middlewares.lgd-map-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.lgd-map-security.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.lgd-map-security.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.routers.lgd-map.middlewares=lgd-map-security"
+      
+      # Rate limiting (optional)
+      - "traefik.http.middlewares.lgd-map-ratelimit.ratelimit.burst=10"
+      - "traefik.http.middlewares.lgd-map-ratelimit.ratelimit.average=5"
+      
+      # Compression
+      - "traefik.http.middlewares.lgd-map-compress.compress=true"
+      - "traefik.http.routers.lgd-map.middlewares=lgd-map-compress"
+    
+    # Networks
+    networks:
+      - traefik-public
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik-public:
+    external: true
