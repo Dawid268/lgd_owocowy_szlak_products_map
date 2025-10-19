@@ -1,0 +1,91 @@
+$primary-color: #f39000;
+$border-color: rgb(65, 63, 68);
+$text-color: #333333;
+$text-color-light: #666666;
+$overlay-bg: rgba(0, 0, 0, 0.9);
+$overlay-light: rgba(0, 0, 0, 0.7);
+$overlay-lighter: rgba(0, 0, 0, 0.5);
+$white: white;
+$gray-light: #f0f0f0;
+$gray-medium: #e0e0e0;
+$gray-hover: #ccc;
+$shadow-color: rgba(0, 0, 0, 0.4);
+$shadow-light: rgba(0, 0, 0, 0.3);
+$shadow-heavy: rgba(0, 0, 0, 0.5);
+
+$container-max-width: 1200px;
+$map-height: 681px;
+$legend-width: 200px;
+$legend-height: 400px;
+$main-container-width: 1200px;
+$map-footer-max-width: 665px;
+
+$thumbnail-size: 60px;
+$carousel-thumbnail-size: 80px;
+$carousel-max-width: 270px;
+$card-image-size: 170px;
+$popup-image-size: 170px;
+$popup-max-width: 400px;
+$popup-max-height: 400px;
+$popup-min-width: 400px;
+
+$icon-size-small: 10px;
+$icon-size-medium: 15px;
+$icon-size-large: 30px;
+$icon-size-legend: 1.8em;
+$icon-size-contact: 16px;
+$icon-size-close: 30px;
+$icon-size-nav: 40px;
+
+$spacing-xs: 5px;
+$spacing-sm: 5px;
+$spacing-md: 10px;
+$spacing-lg: 20px;
+$spacing-xl: 25px;
+$spacing-xxl: 30px;
+
+$border-radius-sm: 4px;
+$border-radius-md: 5px;
+$border-radius-lg: 6px;
+$border-radius-xl: 8px;
+$border-radius-full: 50%;
+$border-radius-pill: 20px;
+
+$font-size-xs: 0.975em;
+$font-size-sm: 1em;
+$font-size-md: 1.2em;
+$font-size-lg: 1.5vw;
+$font-size-popup-xs: 10px;
+$font-size-popup-sm: 12px;
+$font-size-counter: 16px;
+$line-height-tight: 1.2;
+$line-height-normal: 1.4;
+
+$transition-fast: 0.2s ease;
+$transition-medium: 0.3s ease;
+$scale-hover: 1.05;
+
+$z-index-map: 1;
+$z-index-legend: 1000;
+$z-index-lightbox: 10000;
+$z-index-lightbox-content: 10001;
+
+$opacity-legend: 0.55;
+$opacity-legend-hover: 1;
+
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 800px;
+$breakpoint-desktop: 1024px;
+
+$carousel-gap: 15px;
+$carousel-margin: 20px;
+$carousel-padding: 8px;
+
+$legend-padding: 8px;
+$legend-border-radius: 0 8px 0 0;
+
+$footer-gap: 4vw;
+$footer-item-max-width: 4vw;
+$footer-item-min-width: 4vw;
+$footer-item-large-max-width: 6vw;
+$footer-item-large-min-width: 6vw;

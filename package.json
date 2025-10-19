@@ -1,25 +1,23 @@
 {
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "build": "webpack --mode production"
+    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --mode development",
+    "build:prod": "webpack --config webpack.prod.js",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@types/leaflet": "^1.8.0",
-    "leaflet-legend": "^1.0.2"
+    "@glidejs/glide": "^3.7.1",
+    "@types/leaflet": "^1.8.0"
   },
   "devDependencies": {
-    "@squoosh/lib": "^0.4.0",
-    "@types/jquery": "^3.3.32",
+    "@types/glidejs__glide": "^3.6.6",
     "@types/leaflet": "^1.5.8",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^4.1.0",
-    "fs-extra": "^10.1.0",
-    "globby": "^13.1.2",
     "html-webpack-plugin": "^5.5.0",
-    "image-minimizer-webpack-plugin": "^3.6.0",
-    "imagemin": "^8.0.1",
-    "json-minimizer-webpack-plugin": "^4.0.0",
     "leaflet": "^1.6.0",
     "mini-css-extract-plugin": "^2.6.1",
     "sass": "^1.54.9",

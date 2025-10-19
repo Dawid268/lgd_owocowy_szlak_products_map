@@ -1,0 +1,45 @@
+@import '../../node_modules/@glidejs/glide/dist/css/glide.core.min.css';
+@import '../../node_modules/@glidejs/glide/dist/css/glide.theme.min.css';
+@import 'variables';
+
+.cards-container__item__carousel {
+  width: 100%;
+  max-width: $carousel-max-width;
+  margin: $carousel-margin 0;
+  margin-left: auto;
+  margin-right: auto;
+
+  .glide {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .glide__track {
+    width: 100%;
+  }
+
+  .glide__slides {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .glide__slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    img {
+      width: $carousel-thumbnail-size;
+      height: $carousel-thumbnail-size;
+      object-fit: cover;
+      cursor: pointer;
+      border-radius: $border-radius-sm;
+      transition: transform $transition-fast;
+
+      &:hover {
+        transform: scale($scale-hover);
+      }
+    }
+  }
+}

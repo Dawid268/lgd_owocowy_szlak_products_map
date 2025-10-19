@@ -1,0 +1,25 @@
+@import 'variables';
+
+#leaflet-map {
+  height: $map-height;
+  width: 100%;
+  z-index: $z-index-map;
+  position: relative;
+}
+
+.leaflet-left .leaflet-control {
+  margin-left: 0;
+}
+
+.leaflet-bottom .leaflet-control {
+  margin-bottom: 0;
+}
+
+.leaflet-right .leaflet-control {
+  margin-right: 0;
+}
+
+.map-icon {
+  height: $icon-size-large;
+  width: $icon-size-large;
+}
