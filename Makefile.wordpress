@@ -48,7 +48,7 @@ dev: build up ## Build and start WordPress for development
 # Production commands
 prod: build up ## Build and start WordPress for production
 	@echo "🚀 WordPress production environment started!"
-	@echo "🌐 Access: https://57.129.41.248/lgd-demo"
+	@echo "🌐 Access: https://lgd-plugin.duckdns.org/lgd-demo"
 
 # Traefik integration
 up-traefik: ## Start WordPress with Traefik

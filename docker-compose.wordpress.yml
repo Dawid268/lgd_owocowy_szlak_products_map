@@ -56,8 +56,8 @@ services:
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_HOME: https://57.129.41.248/lgd-demo
-      WORDPRESS_SITEURL: https://57.129.41.248/lgd-demo
+      WORDPRESS_HOME: https://lgd-plugin.duckdns.org/lgd-demo
+      WORDPRESS_SITEURL: https://lgd-plugin.duckdns.org/lgd-demo
     volumes:
       - wordpress_traefik_data:/var/www/html
     depends_on:
@@ -70,7 +70,7 @@ services:
       - "traefik.enable=true"
       
       # HTTP router
-      - "traefik.http.routers.lgd-wordpress.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-wordpress.rule=Host(`lgd-plugin.duckdns.org`) && PathPrefix(`/lgd-demo`)"
       - "traefik.http.routers.lgd-wordpress.entrypoints=websecure"
       - "traefik.http.routers.lgd-wordpress.tls=true"
       - "traefik.http.routers.lgd-wordpress.tls.certresolver=letsencrypt"

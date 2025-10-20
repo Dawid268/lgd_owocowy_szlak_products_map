@@ -850,15 +850,15 @@ PORTAINER_PRODUCTION_WEBHOOK=https://your-portainer.com/api/webhooks/your-produc
 
 #### Demo Environment
 
-- **Main URL**: `https://57.129.41.248/lgd-demo`
-- **Health Check**: `https://57.129.41.248/lgd-demo/health`
-- **Debug Endpoint**: `https://57.129.41.248/lgd-demo/debug`
+- **Main URL**: `https://lgd-plugin.duckdns.org/lgd-demo`
+- **Health Check**: `https://lgd-plugin.duckdns.org/lgd-demo/health`
+- **Debug Endpoint**: `https://lgd-plugin.duckdns.org/lgd-demo/debug`
 
 #### Direct Access (Alternative)
 
-- **Main URL**: `https://57.129.41.248`
-- **Health Check**: `https://57.129.41.248/health`
-- **Debug Endpoint**: `https://57.129.41.248/debug`
+- **Main URL**: `https://lgd-plugin.duckdns.org`
+- **Health Check**: `https://lgd-plugin.duckdns.org/health`
+- **Debug Endpoint**: `https://lgd-plugin.duckdns.org/debug`
 
 ### 📊 Monitoring & Health Checks
 
