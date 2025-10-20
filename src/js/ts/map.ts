@@ -1,23 +1,27 @@
+interface ThemeInfo {
+  name: string;
+  version: string;
+  author: string;
+  colors: Record<string, string>;
+  typography: Record<string, string>;
+}
+
+interface FrontendStrings {
+  loading: string;
+  error: string;
+  noPoints: string;
+  close: string;
+  next: string;
+  prev: string;
+}
+
 interface LgdMapData {
   apiUrl: string;
   nonce: string;
   ajaxUrl: string;
   pluginUrl: string;
-  theme: {
-    name: string;
-    version: string;
-    author: string;
-    colors: Record<string, string>;
-    typography: Record<string, string>;
-  };
-  strings: {
-    loading: string;
-    error: string;
-    noPoints: string;
-    close: string;
-    next: string;
-    prev: string;
-  };
+  theme: ThemeInfo;
+  strings: FrontendStrings;
 }
 
 interface PointData {
@@ -37,31 +41,37 @@ interface PointData {
   updated_at: string;
 }
 
+interface MapConfig {
+  default_lat: number;
+  default_lng: number;
+  default_zoom: number;
+  show_legend: boolean;
+  show_cards: boolean;
+  legend_position: string;
+}
+
+interface DisplayConfig {
+  width: string;
+  height: string;
+  theme: string;
+}
+
 interface MapSettings {
-  map: {
-    default_lat: number;
-    default_lng: number;
-    default_zoom: number;
-    show_legend: boolean;
-    show_cards: boolean;
-    legend_position: string;
-  };
-  display: {
-    width: string;
-    height: string;
-    theme: string;
-  };
+  map: MapConfig;
+  display: DisplayConfig;
   categories: Record<string, string>;
+}
+
+interface ApiResponseData {
+  points?: PointData[];
+  settings?: MapSettings;
+  total?: number;
+  pages?: number;
 }
 
 interface AjaxResponse {
   success: boolean;
-  data: {
-    points?: PointData[];
-    settings?: MapSettings;
-    total?: number;
-    pages?: number;
-  };
+  data: ApiResponseData;
 }
 
 declare const lgdMapData: LgdMapData;

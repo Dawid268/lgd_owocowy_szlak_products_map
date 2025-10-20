@@ -20,7 +20,6 @@
   --lgd-map-font_weight_bold: 700;
 }
 
-// Theme Integration Mixins
 @mixin theme-color($property, $color-key, $fallback: null) {
   #{$property}: var(--lgd-map-color-#{$color-key}, #{$fallback});
 }
@@ -28,8 +27,6 @@
 @mixin theme-typography($property, $typography-key, $fallback: null) {
   #{$property}: var(--lgd-map-#{$typography-key}, #{$fallback});
 }
-
-// Theme-aware component styles
 .lgd-map-container {
   @include theme-typography(font-family, font_family, inherit);
   @include theme-color(color, text, #333);
@@ -37,7 +34,6 @@
   @include theme-typography(line-height, line_height, 1.5);
 }
 
-// Legend with theme integration
 .lgd-legend {
   @include theme-color(background-color, background, #fff);
   @include theme-color(border-color, border, #ddd);
@@ -64,7 +60,6 @@
   }
 }
 
-// Cards with theme integration
 .lgd-card {
   @include theme-color(background-color, background, #fff);
   @include theme-color(border-color, border, #ddd);
@@ -91,7 +86,6 @@
   }
 }
 
-// Popup with theme integration
 .lgd-popup {
   @include theme-color(background-color, background, #fff);
   @include theme-color(color, text, #333);
@@ -117,7 +111,6 @@
   }
 }
 
-// Lightbox with theme integration
 .lgd-lightbox {
   @include theme-color(background-color, background, #fff);
 
@@ -136,7 +129,6 @@
   }
 }
 
-// Carousel with theme integration
 .lgd-carousel {
   &__arrow {
     @include theme-color(background-color, primary, #0073aa);
@@ -157,7 +149,6 @@
   }
 }
 
-// Footer with theme integration
 .lgd-footer {
   @include theme-color(background-color, primary, #0073aa);
   @include theme-color(color, background, #fff);
@@ -167,7 +158,6 @@
   }
 }
 
-// Responsive theme adjustments
 @media (max-width: 768px) {
   .lgd-legend {
     &__title {

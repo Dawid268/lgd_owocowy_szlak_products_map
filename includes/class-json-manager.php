@@ -3,29 +3,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 class LGD_Map_JSON_Manager {
-    
-    /**
-     * Data file path
-     */
     private $data_file;
-    
-    /**
-     * Settings file path
-     */
     private $settings_file;
     
-    /**
-     * Constructor
-     */
     public function __construct() {
         $this->data_file = LGD_MAP_PLUGIN_DIR . 'data/data.json';
         $this->settings_file = LGD_MAP_PLUGIN_DIR . 'data/settings.json';
         $this->init_hooks();
     }
     
-    /**
-     * Initialize hooks
-     */
     private function init_hooks() {
         add_action('wp_ajax_lgd_map_save_point', array($this, 'ajax_save_point'));
         add_action('wp_ajax_lgd_map_delete_point', array($this, 'ajax_delete_point'));

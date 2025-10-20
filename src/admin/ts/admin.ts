@@ -1,28 +1,32 @@
+interface ValidationMessages {
+  required: string;
+  invalidEmail: string;
+  invalidUrl: string;
+  invalidPhone: string;
+  invalidCoordinates: string;
+  latitudeRange: string;
+  longitudeRange: string;
+  nameMinLength: string;
+  nameMaxLength: string;
+  descriptionMaxLength: string;
+}
+
+interface UserMessages {
+  saving: string;
+  saved: string;
+  deleted: string;
+  error: string;
+  confirmDelete: string;
+}
+
 interface LgdMapAdmin {
   ajaxUrl: string;
   nonce: string;
-  validation: {
-    required: string;
-    invalidEmail: string;
-    invalidUrl: string;
-    invalidPhone: string;
-    invalidCoordinates: string;
-    latitudeRange: string;
-    longitudeRange: string;
-    nameMinLength: string;
-    nameMaxLength: string;
-    descriptionMaxLength: string;
-  };
-  messages: {
-    saving: string;
-    saved: string;
-    deleted: string;
-    error: string;
-    confirmDelete: string;
-  };
+  validation: ValidationMessages;
+  messages: UserMessages;
 }
 
-interface PointData {
+interface AdminPointData {
   id?: number;
   name: string;
   description: string;
@@ -37,11 +41,11 @@ interface PointData {
   updated_at?: string;
 }
 
-interface AjaxResponse {
+interface AdminAjaxResponse {
   success: boolean;
   data: {
     message?: string;
-    points?: PointData[];
+    points?: AdminPointData[];
     settings?: Record<string, unknown>;
   };
 }
@@ -252,9 +256,10 @@ declare const lgdMapAdmin: LgdMapAdmin;
 
     const form = $('#lgd-add-point-form');
     const formData = new FormData(form[0] as HTMLFormElement);
-    const pointData: PointData = {} as PointData;
+    const pointData: AdminPointData = {} as AdminPointData;
 
-    for (const [key, value] of formData.entries()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const [key, value] of (formData as any).entries()) {
       (pointData as Record<string, unknown>)[key] = value;
     }
 
@@ -274,7 +279,7 @@ declare const lgdMapAdmin: LgdMapAdmin;
         point: pointData,
         nonce: lgdMapAdmin.nonce,
       },
-      success: function (response: AjaxResponse) {
+      success: function (response: AdminAjaxResponse) {
         if (response.success) {
           showNotice(lgdMapAdmin.messages.saved, 'success');
           resetForm();
@@ -305,9 +310,9 @@ declare const lgdMapAdmin: LgdMapAdmin;
         action: 'lgd_map_get_data',
         nonce: lgdMapAdmin.nonce,
       },
-      success: function (response: AjaxResponse) {
+      success: function (response: AdminAjaxResponse) {
         if (response.success && response.data.points) {
-          const points: PointData[] = response.data.points;
+          const points: AdminPointData[] = response.data.points;
           const point = points.find(p => p.id === pointId);
 
           if (point) {
@@ -361,7 +366,7 @@ declare const lgdMapAdmin: LgdMapAdmin;
         point_id: pointId,
         nonce: lgdMapAdmin.nonce,
       },
-      success: function (response: AjaxResponse) {
+      success: function (response: AdminAjaxResponse) {
         if (response.success) {
           showNotice(lgdMapAdmin.messages.deleted, 'success');
           location.reload(); // Reload to update list
@@ -384,15 +389,16 @@ declare const lgdMapAdmin: LgdMapAdmin;
     const settings: Record<string, unknown> = {};
 
     // Convert FormData to nested object
-    for (const [key, value] of formData.entries()) {
-      const keys = key.split('[').map(k => k.replace(']', ''));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const [key, value] of (formData as any).entries()) {
+      const keys = key.split('[').map((k: string) => k.replace(']', ''));
       let current = settings;
 
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) {
           current[keys[i]] = {};
         }
-        current = current[keys[i]];
+        current = current[keys[i]] as Record<string, unknown>;
       }
 
       current[keys[keys.length - 1]] = value;
@@ -412,7 +418,7 @@ declare const lgdMapAdmin: LgdMapAdmin;
         settings: settings,
         nonce: lgdMapAdmin.nonce,
       },
-      success: function (response: AjaxResponse) {
+      success: function (response: AdminAjaxResponse) {
         if (response.success) {
           showNotice('Settings saved successfully!', 'success');
         } else {
@@ -462,6 +468,4 @@ declare const lgdMapAdmin: LgdMapAdmin;
   $(document).on('click', '.lgd-reset-form', function () {
     resetForm();
   });
-
-  // eslint-disable-next-line no-undef
-})(jQuery);
+})(window.jQuery);
