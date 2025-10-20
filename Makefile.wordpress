@@ -1,0 +1,67 @@
+# WordPress LGD Map Plugin Makefile
+
+.PHONY: help build up down logs clean install-plugin
+
+# Default target
+help: ## Show this help message
+	@echo "WordPress LGD Map Plugin Commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+build: ## Build WordPress Docker image
+	docker-compose -f docker-compose.wordpress.yml build
+
+up: ## Start WordPress containers
+	docker-compose -f docker-compose.wordpress.yml up -d
+
+down: ## Stop WordPress containers
+	docker-compose -f docker-compose.wordpress.yml down
+
+logs: ## Show WordPress container logs
+	docker-compose -f docker-compose.wordpress.yml logs -f wordpress
+
+clean: ## Clean up WordPress containers and volumes
+	docker-compose -f docker-compose.wordpress.yml down -v
+	docker system prune -f
+
+install-plugin: ## Install and activate LGD Map plugin
+	docker exec lgd-wordpress-app wp plugin activate lgd-map --allow-root
+
+create-demo-page: ## Create demo page with map
+	docker exec lgd-wordpress-app wp post create \
+		--post_type="page" \
+		--post_title="LGD Map Demo" \
+		--post_name="lgd-demo" \
+		--post_content="[lgd_map width=\"100%\" height=\"600px\"]" \
+		--post_status="publish" \
+		--allow-root
+
+setup-wordpress: ## Complete WordPress setup
+	docker exec lgd-wordpress-app /docker-entrypoint-initdb.d/init-wordpress.sh
+
+# Development commands
+dev: build up ## Build and start WordPress for development
+	@echo "🚀 WordPress development environment started!"
+	@echo "🌐 Access: http://localhost:8080"
+	@echo "🔐 Admin: admin / admin123"
+	@echo "📄 Demo: http://localhost:8080/lgd-demo"
+
+# Production commands
+prod: build up ## Build and start WordPress for production
+	@echo "🚀 WordPress production environment started!"
+	@echo "🌐 Access: https://57.129.41.248/lgd-demo"
+
+# Traefik integration
+up-traefik: ## Start WordPress with Traefik
+	docker-compose -f docker-compose.wordpress.yml --profile traefik up -d
+
+# Status check
+status: ## Check WordPress container status
+	docker-compose -f docker-compose.wordpress.yml ps
+
+# Database backup
+backup-db: ## Backup WordPress database
+	docker exec lgd-wordpress-mysql mysqldump -u wordpress -pwordpress wordpress > backup-$(shell date +%Y%m%d-%H%M%S).sql
+
+# Database restore
+restore-db: ## Restore WordPress database (usage: make restore-db FILE=backup.sql)
+	docker exec -i lgd-wordpress-mysql mysql -u wordpress -pwordpress wordpress < $(FILE)

@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lgd-wordpress-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - wordpress-network
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
+    container_name: lgd-wordpress-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_HOME: http://localhost:8080
+      WORDPRESS_SITEURL: http://localhost:8080
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./docker/wordpress/init-wordpress.sh:/docker-entrypoint-initdb.d/init-wordpress.sh
+    depends_on:
+      - mysql
+    networks:
+      - wordpress-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # For Traefik integration (optional)
+  wordpress-traefik:
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
+    container_name: lgd-wordpress-traefik
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_HOME: https://57.129.41.248/lgd-demo
+      WORDPRESS_SITEURL: https://57.129.41.248/lgd-demo
+    volumes:
+      - wordpress_traefik_data:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - wordpress-network
+      - traefik-public
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      
+      # HTTP router
+      - "traefik.http.routers.lgd-wordpress.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
+      - "traefik.http.routers.lgd-wordpress.entrypoints=websecure"
+      - "traefik.http.routers.lgd-wordpress.tls=true"
+      - "traefik.http.routers.lgd-wordpress.tls.certresolver=letsencrypt"
+      
+      # Service configuration
+      - "traefik.http.services.lgd-wordpress.loadbalancer.server.port=80"
+      
+      # Middleware configuration
+      - "traefik.http.middlewares.lgd-wordpress-stripprefix.stripprefix.prefixes=/lgd-demo"
+      - "traefik.http.middlewares.lgd-wordpress-security.headers.frameDeny=true"
+      - "traefik.http.middlewares.lgd-wordpress-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.lgd-wordpress-security.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.lgd-wordpress-compress.compress=true"
+      
+      # Apply middleware
+      - "traefik.http.routers.lgd-wordpress.middlewares=lgd-wordpress-stripprefix,lgd-wordpress-security,lgd-wordpress-compress"
+    profiles:
+      - traefik
+
+volumes:
+  mysql_data:
+  wordpress_data:
+  wordpress_traefik_data:
+
+networks:
+  wordpress-network:
+    driver: bridge
+  traefik-public:
+    external: true

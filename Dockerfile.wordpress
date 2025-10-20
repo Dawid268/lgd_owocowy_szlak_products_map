@@ -1,0 +1,50 @@
+# WordPress Dockerfile with LGD Map Plugin
+FROM wordpress:6.4-php8.2-apache
+
+# Install additional PHP extensions
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install Node.js and npm for building assets
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy WordPress configuration
+COPY docker/wordpress/wp-config.php /var/www/html/wp-config.php
+COPY docker/wordpress/.htaccess /var/www/html/.htaccess
+
+# Copy plugin source code
+COPY . /var/www/html/wp-content/plugins/lgd-map/
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Install plugin dependencies and build assets
+WORKDIR /var/www/html/wp-content/plugins/lgd-map
+RUN npm install && npm run build
+
+# Set working directory back to WordPress root
+WORKDIR /var/www/html
+
+# Create WordPress database initialization script
+COPY docker/wordpress/init-wordpress.sql /docker-entrypoint-initdb.d/
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Start Apache
+CMD ["apache2-foreground"]
