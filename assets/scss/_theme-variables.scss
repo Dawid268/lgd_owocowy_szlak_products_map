@@ -1,0 +1,210 @@
+/**
+ * Theme Variables Integration
+ * WordPress theme colors and typography integration
+ */
+
+// WordPress Theme Color Variables
+:root {
+  // Default colors (fallback)
+  --lgd-map-color-primary: #0073aa;
+  --lgd-map-color-secondary: #005177;
+  --lgd-map-color-accent: #00a0d2;
+  --lgd-map-color-text: #333333;
+  --lgd-map-color-background: #ffffff;
+  --lgd-map-color-border: #dddddd;
+  --lgd-map-color-success: #46b450;
+  --lgd-map-color-warning: #ffb900;
+  --lgd-map-color-error: #dc3232;
+  --lgd-map-color-info: #00a0d2;
+
+  // Default typography (fallback)
+  --lgd-map-font_family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
+  --lgd-map-font_size_base: 16px;
+  --lgd-map-font_size_small: 14px;
+  --lgd-map-font_size_large: 18px;
+  --lgd-map-line_height: 1.5;
+  --lgd-map-font_weight_normal: 400;
+  --lgd-map-font_weight_bold: 700;
+}
+
+// Theme Integration Mixins
+@mixin theme-color($property, $color-key, $fallback: null) {
+  #{$property}: var(--lgd-map-color-#{$color-key}, #{$fallback});
+}
+
+@mixin theme-typography($property, $typography-key, $fallback: null) {
+  #{$property}: var(--lgd-map-#{$typography-key}, #{$fallback});
+}
+
+// Theme-aware component styles
+.lgd-map-container {
+  @include theme-typography(font-family, font_family, inherit);
+  @include theme-color(color, text, #333);
+  @include theme-typography(font-size, font_size_base, 16px);
+  @include theme-typography(line-height, line_height, 1.5);
+}
+
+// Legend with theme integration
+.lgd-legend {
+  @include theme-color(background-color, background, #fff);
+  @include theme-color(border-color, border, #ddd);
+
+  &__item {
+    @include theme-color(color, text, #333);
+    @include theme-typography(font-size, font_size_small, 14px);
+
+    &:hover {
+      @include theme-color(background-color, primary, #0073aa);
+      @include theme-color(color, background, #fff);
+    }
+
+    &--active {
+      @include theme-color(background-color, primary, #0073aa);
+      @include theme-color(color, background, #fff);
+    }
+  }
+
+  &__title {
+    @include theme-color(color, primary, #0073aa);
+    @include theme-typography(font-weight, font_weight_bold, 700);
+    @include theme-typography(font-size, font_size_large, 18px);
+  }
+}
+
+// Cards with theme integration
+.lgd-card {
+  @include theme-color(background-color, background, #fff);
+  @include theme-color(border-color, border, #ddd);
+  @include theme-color(color, text, #333);
+
+  &__title {
+    @include theme-color(color, primary, #0073aa);
+    @include theme-typography(font-weight, font_weight_bold, 700);
+    @include theme-typography(font-size, font_size_large, 18px);
+  }
+
+  &__description {
+    @include theme-color(color, text, #333);
+    @include theme-typography(font-size, font_size_base, 16px);
+    @include theme-typography(line-height, line_height, 1.5);
+  }
+
+  &__contact {
+    &-phone,
+    &-website {
+      @include theme-color(color, accent, #00a0d2);
+      @include theme-typography(font-size, font_size_small, 14px);
+    }
+  }
+}
+
+// Popup with theme integration
+.lgd-popup {
+  @include theme-color(background-color, background, #fff);
+  @include theme-color(color, text, #333);
+
+  &__title {
+    @include theme-color(color, primary, #0073aa);
+    @include theme-typography(font-weight, font_weight_bold, 700);
+    @include theme-typography(font-size, font_size_large, 18px);
+  }
+
+  &__description {
+    @include theme-color(color, text, #333);
+    @include theme-typography(font-size, font_size_base, 16px);
+    @include theme-typography(line-height, line_height, 1.5);
+  }
+
+  &__contact {
+    &-phone,
+    &-website {
+      @include theme-color(color, accent, #00a0d2);
+      @include theme-typography(font-size, font_size_small, 14px);
+    }
+  }
+}
+
+// Lightbox with theme integration
+.lgd-lightbox {
+  @include theme-color(background-color, background, #fff);
+
+  &__nav {
+    @include theme-color(background-color, primary, #0073aa);
+    @include theme-color(color, background, #fff);
+
+    &:hover {
+      @include theme-color(background-color, secondary, #005177);
+    }
+  }
+
+  &__counter {
+    @include theme-color(color, text, #333);
+    @include theme-typography(font-size, font_size_small, 14px);
+  }
+}
+
+// Carousel with theme integration
+.lgd-carousel {
+  &__arrow {
+    @include theme-color(background-color, primary, #0073aa);
+    @include theme-color(color, background, #fff);
+
+    &:hover {
+      @include theme-color(background-color, secondary, #005177);
+    }
+
+    &:disabled {
+      @include theme-color(background-color, border, #ddd);
+      @include theme-color(color, text, #999);
+    }
+  }
+
+  &__slide {
+    @include theme-color(border-color, border, #ddd);
+  }
+}
+
+// Footer with theme integration
+.lgd-footer {
+  @include theme-color(background-color, primary, #0073aa);
+  @include theme-color(color, background, #fff);
+
+  &__text {
+    @include theme-typography(font-size, font_size_small, 14px);
+  }
+}
+
+// Responsive theme adjustments
+@media (max-width: 768px) {
+  .lgd-legend {
+    &__title {
+      @include theme-typography(font-size, font_size_base, 16px);
+    }
+
+    &__item {
+      @include theme-typography(font-size, font_size_small, 12px);
+    }
+  }
+
+  .lgd-card {
+    &__title {
+      @include theme-typography(font-size, font_size_base, 16px);
+    }
+
+    &__description {
+      @include theme-typography(font-size, font_size_small, 14px);
+    }
+  }
+
+  .lgd-popup {
+    &__title {
+      @include theme-typography(font-size, font_size_base, 16px);
+    }
+
+    &__description {
+      @include theme-typography(font-size, font_size_small, 14px);
+    }
+  }
+}

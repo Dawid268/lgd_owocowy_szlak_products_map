@@ -1,0 +1,81 @@
+/**
+ * Main SCSS file for LGD Map WordPress Plugin
+ * Includes theme integration and responsive design
+ */
+
+// Import theme variables first
+@import 'theme-variables';
+
+// Import base styles
+@import 'variables';
+@import 'base';
+
+// Import component styles
+@import 'map';
+@import 'legend';
+@import 'cards';
+@import 'popup';
+@import 'carousel';
+@import 'lightbox';
+@import 'footer';
+
+// Import responsive styles
+@import 'lazy-loading';
+
+// WordPress-specific overrides
+.lgd-map-container {
+  // Ensure proper WordPress integration
+  box-sizing: border-box;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  // WordPress admin bar compatibility
+  .admin-bar & {
+    margin-top: 32px;
+
+    @media screen and (max-width: 782px) {
+      margin-top: 46px;
+    }
+  }
+
+  // WordPress theme compatibility
+  &.lgd-map-theme-integrated {
+    // Use theme colors and typography
+    font-family: var(--lgd-map-font_family, inherit);
+    color: var(--lgd-map-color-text, #333);
+
+    // Override any conflicting theme styles
+    .lgd-legend,
+    .lgd-card,
+    .lgd-popup,
+    .lgd-lightbox {
+      font-family: var(--lgd-map-font_family, inherit);
+    }
+  }
+}
+
+// WordPress block editor compatibility
+.wp-block-lgd-map {
+  .lgd-map-container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// WordPress widget compatibility
+.widget_lgd_map {
+  .lgd-map-container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// WordPress shortcode compatibility
+.lgd-map-shortcode {
+  .lgd-map-container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
