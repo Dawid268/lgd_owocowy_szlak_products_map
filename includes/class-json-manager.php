@@ -1,19 +1,7 @@
 <?php
-/**
- * JSON File Manager class
- *
- * @package LGD_Map
- * @since 1.0.0
- */
-
-// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
-
-/**
- * LGD_Map_JSON_Manager class
- */
 class LGD_Map_JSON_Manager {
     
     /**

@@ -1,11 +1,4 @@
-/**
- * Theme Variables Integration
- * WordPress theme colors and typography integration
- */
-
-// WordPress Theme Color Variables
 :root {
-  // Default colors (fallback)
   --lgd-map-color-primary: #0073aa;
   --lgd-map-color-secondary: #005177;
   --lgd-map-color-accent: #00a0d2;
@@ -16,8 +9,6 @@
   --lgd-map-color-warning: #ffb900;
   --lgd-map-color-error: #dc3232;
   --lgd-map-color-info: #00a0d2;
-
-  // Default typography (fallback)
   --lgd-map-font_family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
     'Helvetica Neue', sans-serif;

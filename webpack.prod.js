@@ -11,7 +11,10 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 
 module.exports = {
   mode: "production",
-  entry: "./src/js/map.ts",
+  entry: {
+    map: './src/js/ts/map.ts',
+    admin: './src/admin/ts/admin.ts',
+  },
   devtool: "source-map",
   module: {
     rules: [
@@ -58,7 +61,7 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
   },
   output: {
-    filename: "js/map.[contenthash].js",
+    filename: "js/[name].[contenthash].js",
     path: path.resolve(__dirname, "dist"),
     clean: true,
     assetModuleFilename: "assets/[name].[contenthash][ext]",

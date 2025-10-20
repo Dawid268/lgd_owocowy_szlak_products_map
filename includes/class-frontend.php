@@ -34,14 +34,13 @@ class LGD_Map_Frontend {
         // Enqueue plugin styles
         wp_enqueue_style('lgd-map-style', LGD_MAP_PLUGIN_URL . 'public/css/map.css', array('leaflet-css'), LGD_MAP_VERSION);
         
-        // Enqueue plugin scripts
+        // Enqueue plugin scripts (compiled from TypeScript)
         wp_enqueue_script('lgd-map-main', LGD_MAP_PLUGIN_URL . 'public/js/map.js', array('leaflet-js'), LGD_MAP_VERSION, true);
         
         // Get theme integration data
         $theme_integration = new LGD_Map_Theme_Integration();
         $theme_info = $theme_integration->get_theme_info();
         
-        // Localize script with WordPress data
         wp_localize_script('lgd-map-main', 'lgdMapData', array(
             'apiUrl' => rest_url('lgd-map/v1/'),
             'nonce' => wp_create_nonce('wp_rest'),

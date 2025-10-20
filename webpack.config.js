@@ -6,7 +6,10 @@ const CopyPlugin = require("copy-webpack-plugin");
 // const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 module.exports = {
-  entry: "./src/js/map.ts",
+  entry: {
+    map: './src/js/ts/map.ts',
+    admin: './src/admin/ts/admin.ts',
+  },
   module: {
     rules: [
       {
@@ -32,7 +35,7 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
   },
   output: {
-    filename: "./js/map.js",
+    filename: "./js/[name].js",
     path: path.resolve(__dirname, "dist"),
     clean: true,
   },
