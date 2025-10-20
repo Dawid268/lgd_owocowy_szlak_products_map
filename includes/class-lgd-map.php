@@ -47,9 +47,9 @@ class LGD_Map {
     public $rest_api;
     
     /**
-     * Data manager instance
+     * JSON manager instance
      */
-    public $data_manager;
+    public $json_manager;
     
     /**
      * Theme integration instance
@@ -82,7 +82,7 @@ class LGD_Map {
         require_once LGD_MAP_PLUGIN_DIR . 'includes/class-frontend.php';
         require_once LGD_MAP_PLUGIN_DIR . 'includes/class-shortcode.php';
         require_once LGD_MAP_PLUGIN_DIR . 'includes/class-rest-api.php';
-        require_once LGD_MAP_PLUGIN_DIR . 'includes/class-data-manager.php';
+        require_once LGD_MAP_PLUGIN_DIR . 'includes/class-json-manager.php';
         require_once LGD_MAP_PLUGIN_DIR . 'includes/class-theme-integration.php';
     }
     
@@ -104,7 +104,7 @@ class LGD_Map {
         $this->frontend = new LGD_Map_Frontend();
         $this->shortcode = new LGD_Map_Shortcode();
         $this->rest_api = new LGD_Map_REST_API();
-        $this->data_manager = new LGD_Map_Data_Manager();
+        $this->json_manager = new LGD_Map_JSON_Manager();
         $this->theme_integration = new LGD_Map_Theme_Integration();
         
         // Load text domain
@@ -142,16 +142,24 @@ class LGD_Map {
      * Plugin activation
      */
     public static function activate() {
-        // Create custom post type
-        $data_manager = new LGD_Map_Data_Manager();
-        $data_manager->register_post_type();
-        $data_manager->register_meta_fields();
+        // Initialize JSON manager
+        $json_manager = new LGD_Map_JSON_Manager();
         
-        // Flush rewrite rules
-        flush_rewrite_rules();
+        // Create data directory and files
+        $data_dir = LGD_MAP_PLUGIN_DIR . 'data';
+        if (!file_exists($data_dir)) {
+            wp_mkdir_p($data_dir);
+        }
         
-        // Migrate data if needed
-        $data_manager->migrate_json_data();
+        // Create default data file if not exists
+        if (!file_exists($json_manager->get_data_file_path())) {
+            $json_manager->create_default_data_file();
+        }
+        
+        // Create default settings file if not exists
+        if (!file_exists($json_manager->get_settings_file_path())) {
+            $json_manager->create_default_settings_file();
+        }
         
         // Set activation flag
         update_option('lgd_map_activated', true);
@@ -172,12 +180,26 @@ class LGD_Map {
      * Plugin uninstall
      */
     public static function uninstall() {
-        // Remove all plugin data
-        $data_manager = new LGD_Map_Data_Manager();
-        $data_manager->delete_all_data();
+        // Remove JSON data files
+        $json_manager = new LGD_Map_JSON_Manager();
+        $data_file = $json_manager->get_data_file_path();
+        $settings_file = $json_manager->get_settings_file_path();
+        
+        if (file_exists($data_file)) {
+            unlink($data_file);
+        }
+        
+        if (file_exists($settings_file)) {
+            unlink($settings_file);
+        }
+        
+        // Remove data directory if empty
+        $data_dir = dirname($data_file);
+        if (is_dir($data_dir) && count(scandir($data_dir)) == 2) {
+            rmdir($data_dir);
+        }
         
         // Remove options
         delete_option('lgd_map_activated');
-        delete_option('lgd_map_settings');
     }
 }

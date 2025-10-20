@@ -241,57 +241,170 @@ class LGD_Map_Admin {
      * Points page callback
      */
     public function points_page() {
+        $json_manager = new LGD_Map_JSON_Manager();
+        $points = $json_manager->load_points();
+        $settings = $json_manager->load_settings();
+        $categories = $settings['categories'] ?? array();
         ?>
         <div class="wrap">
             <h1><?php _e('Map Points Management', 'lgd-map'); ?></h1>
             
-            <p>
-                <a href="<?php echo admin_url('post-new.php?post_type=lgd_point'); ?>" class="button button-primary">
-                    <?php _e('Add New Point', 'lgd-map'); ?>
-                </a>
-            </p>
-            
-            <div class="lgd-points-list">
-                <?php
-                $points = get_posts(array(
-                    'post_type' => 'lgd_point',
-                    'numberposts' => -1,
-                    'post_status' => 'publish',
-                ));
+            <div class="lgd-points-management">
+                <!-- Add New Point Form -->
+                <div class="lgd-add-point-form">
+                    <h2><?php _e('Add New Point', 'lgd-map'); ?></h2>
+                    <form id="lgd-add-point-form">
+                        <?php wp_nonce_field('lgd_map_nonce', 'lgd_map_nonce'); ?>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_name"><?php _e('Name', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="text" id="point_name" name="name" class="regular-text" required />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_description"><?php _e('Description', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <textarea id="point_description" name="description" rows="3" class="large-text"></textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_latitude"><?php _e('Latitude', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="number" step="any" id="point_latitude" name="latitude" class="regular-text" required />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_longitude"><?php _e('Longitude', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="number" step="any" id="point_longitude" name="longitude" class="regular-text" required />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_category"><?php _e('Category', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <select id="point_category" name="category" class="regular-text">
+                                        <option value=""><?php _e('Select Category', 'lgd-map'); ?></option>
+                                        <?php foreach ($categories as $key => $value): ?>
+                                        <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($value); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_legend_name"><?php _e('Legend Name', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="text" id="point_legend_name" name="legendName" class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_legend_sub_name"><?php _e('Legend Sub Name', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="text" id="point_legend_sub_name" name="legendSubName" class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_phone"><?php _e('Phone', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="tel" id="point_phone" name="phone" class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="point_website"><?php _e('Website', 'lgd-map'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="url" id="point_website" name="website" class="regular-text" />
+                                </td>
+                            </tr>
+                        </table>
+                        <p class="submit">
+                            <input type="submit" class="button button-primary" value="<?php _e('Add Point', 'lgd-map'); ?>" />
+                        </p>
+                    </form>
+                </div>
                 
-                if ($points) {
-                    echo '<table class="wp-list-table widefat fixed striped">';
-                    echo '<thead><tr>';
-                    echo '<th>' . __('Name', 'lgd-map') . '</th>';
-                    echo '<th>' . __('Category', 'lgd-map') . '</th>';
-                    echo '<th>' . __('Coordinates', 'lgd-map') . '</th>';
-                    echo '<th>' . __('Actions', 'lgd-map') . '</th>';
-                    echo '</tr></thead>';
-                    echo '<tbody>';
-                    
-                    foreach ($points as $point) {
-                        $latitude = get_post_meta($point->ID, 'latitude', true);
-                        $longitude = get_post_meta($point->ID, 'longitude', true);
-                        $category = get_post_meta($point->ID, 'category', true);
-                        
-                        echo '<tr>';
-                        echo '<td><strong>' . esc_html($point->post_title) . '</strong></td>';
-                        echo '<td>' . esc_html($category) . '</td>';
-                        echo '<td>' . esc_html($latitude) . ', ' . esc_html($longitude) . '</td>';
-                        echo '<td>';
-                        echo '<a href="' . get_edit_post_link($point->ID) . '" class="button button-small">' . __('Edit', 'lgd-map') . '</a>';
-                        echo ' <a href="' . get_delete_post_link($point->ID) . '" class="button button-small button-link-delete">' . __('Delete', 'lgd-map') . '</a>';
-                        echo '</td>';
-                        echo '</tr>';
-                    }
-                    
-                    echo '</tbody></table>';
-                } else {
-                    echo '<p>' . __('No points found.', 'lgd-map') . '</p>';
-                }
-                ?>
+                <!-- Points List -->
+                <div class="lgd-points-list">
+                    <h2><?php _e('Existing Points', 'lgd-map'); ?></h2>
+                    <?php if ($points): ?>
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th><?php _e('Name', 'lgd-map'); ?></th>
+                                <th><?php _e('Category', 'lgd-map'); ?></th>
+                                <th><?php _e('Coordinates', 'lgd-map'); ?></th>
+                                <th><?php _e('Actions', 'lgd-map'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($points as $point): ?>
+                            <tr data-point-id="<?php echo esc_attr($point['id']); ?>">
+                                <td><strong><?php echo esc_html($point['name']); ?></strong></td>
+                                <td><?php echo esc_html($categories[$point['category']] ?? $point['category']); ?></td>
+                                <td><?php echo esc_html($point['latitude'] . ', ' . $point['longitude']); ?></td>
+                                <td>
+                                    <button class="button button-small lgd-edit-point" data-point-id="<?php echo esc_attr($point['id']); ?>">
+                                        <?php _e('Edit', 'lgd-map'); ?>
+                                    </button>
+                                    <button class="button button-small button-link-delete lgd-delete-point" data-point-id="<?php echo esc_attr($point['id']); ?>">
+                                        <?php _e('Delete', 'lgd-map'); ?>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php else: ?>
+                    <p><?php _e('No points found.', 'lgd-map'); ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
+        
+        <style>
+        .lgd-points-management {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .lgd-add-point-form {
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        .lgd-points-list {
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 1200px) {
+            .lgd-points-management {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
         <?php
     }
     
