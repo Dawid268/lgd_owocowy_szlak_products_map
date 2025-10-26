@@ -66,7 +66,6 @@ export class PopupTemplate {
     const emailsContainer = this.generateEmails(point.emails);
     const phoneContainer = this.generatePhones(point.phoneNumbers);
     const webpage = this.generateWebPage(point.webpage);
-    const product = this.generateProduct(point.product);
     const facebook = this.generateFacebook(point.facebook);
     const image = this.generateImage(point.image);
 
@@ -74,11 +73,12 @@ export class PopupTemplate {
       <div class="popup-container">
         <div class="data__title__container">
           <div class="data__title__container--name" style="color: ${point.color}">${point.name}</div>
+          <div class="data__title__container--contact" style="margin-bottom: 40px;">
           ${addressContainer ? `<div class="data__title__container--address">${addressContainer}</div>` : ''}
           ${phoneContainer ? `<div class="data__title__container--phone">${phoneContainer}</div>` : ''}
           ${emailsContainer ? `<div class="data__title__container--email">${emailsContainer}</div>` : ''}
           ${webpage || facebook ? `<div class="data__title__container--social">${webpage} ${facebook}</div>` : ''}
-          ${product ? `<div class="data__title__container--product">${product}</div>` : ''}
+          </div>
         </div>
         ${image}
       </div>
