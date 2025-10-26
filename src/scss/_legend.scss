@@ -110,6 +110,7 @@
   border-radius: $border-radius-sm;
   transition: background-color $transition-fast;
   min-height: $touch-target-min;
+  font-size: $font-size-small;
 
   @include mobile {
     padding: $spacing-md;
@@ -158,12 +159,12 @@
     word-break: keep-all;
 
     &--name {
-      font-size: $font-size-text;
+      font-size: $font-size-small;
       font-weight: bold;
     }
 
     &--subname {
-      font-size: $font-size-medium;
+      font-size: $font-size-small;
     }
   }
 }
@@ -271,12 +272,12 @@
 
     &__info {
       &--name {
-        font-size: $font-size-text;
+        font-size: $font-size-small;
         font-weight: 600;
       }
 
       &--subname {
-        font-size: $font-size-small;
+        font-size: $font-size-tiny;
         opacity: 0.8;
       }
     }

@@ -81,6 +81,7 @@ export class CardTemplate {
             <div class="data__title__container--name" style="color: ${
               point.color
             }">${point.name}</div>
+            <div class="data__title__container--contact" style="margin-bottom: 40px;">
             ${
               addressesHtml
                 ? `<div class="data__title__container--address">${point.addresses.join(
@@ -107,6 +108,7 @@ export class CardTemplate {
                 ? `<div class="data__title__container--social">${facebookHtml} ${webpageHtml}</div>`
                 : ''
             }
+            </div>
           </div>
           ${htmlImage}
         </div>

@@ -17,34 +17,87 @@ export class MapService {
     }
 
     const leafletId = containerId.replace('#', '');
-    this.map = Leaflet.map(leafletId).setView([51.24210937175719, 21.825316526477195], 10);
+    const config: Leaflet.MapOptions = {
+      minZoom: 10,
+      maxZoom: 18,
+      zoomControl: false,
+    };
 
-    Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
+    this.map = Leaflet.map(leafletId, config).setView([51.24210937175719, 21.825316526477195], 10);
+
+    Leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      // Preload tiles for smoother navigation
+      updateWhenZooming: true,
+      updateWhenIdle: true,
+      keepBuffer: 2,
     }).addTo(this.map);
   }
 
   public addMarker(point: Point): Leaflet.Marker {
     const marker = Leaflet.marker([point.latitude, point.longitude], {
-      icon: Leaflet.icon({
-        iconUrl: point.icon,
-        iconSize: [25, 25],
-        iconAnchor: [12, 12],
-        popupAnchor: [0, -12],
-      }),
+      icon: this.generateIcon(point.icon),
     });
 
-    marker.bindPopup(point.generatePopup());
+    marker.bindPopup(point.generatePopup(), {
+      className: 'popup-main-container',
+      autoPanPaddingTopLeft: Leaflet.point(100, 1000),
+    });
+
+    marker.on('click', () => {
+      this.zoomToPoint(point.latitude, point.longitude);
+    });
+
     marker.addTo(this.map);
 
     this.markers.push(marker);
     return marker;
   }
 
-  public addMarkers(points: Point[]): void {
-    points.forEach(point => {
-      this.addMarker(point);
+  private generateIcon(iconPath: string): Leaflet.DivIcon {
+    return Leaflet.divIcon({
+      className: 'marker',
+      html: `<img src="${iconPath}" class="map-icon" alt="svg">`,
+      iconSize: [5, 5],
+      iconAnchor: [2, 2],
+      popupAnchor: [12, -5],
     });
+  }
+
+  public async addMarkers(points: Point[]): Promise<void> {
+    // Preload all marker icons first for smoother rendering
+    await this.preloadIcons(points);
+
+    // Add markers in batches to avoid blocking UI
+    await this.addMarkersInBatches(points, 10);
+  }
+
+  private async addMarkersInBatches(points: Point[], batchSize: number): Promise<void> {
+    for (let i = 0; i < points.length; i += batchSize) {
+      const batch = points.slice(i, i + batchSize);
+
+      // Add batch synchronously
+      batch.forEach(point => {
+        this.addMarker(point);
+      });
+
+      // Wait for next frame before adding next batch
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+  }
+
+  private async preloadIcons(points: Point[]): Promise<void> {
+    const iconPromises = points.map(point => {
+      return new Promise<void>(resolve => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Continue even if icon fails to load
+        img.src = point.icon;
+      });
+    });
+
+    await Promise.all(iconPromises);
   }
 
   public getMap(): Leaflet.Map {
@@ -63,10 +116,11 @@ export class MapService {
       bounds.extend(marker.getLatLng());
     });
 
-    this.map.fitBounds(bounds, {
-      padding: [10, 10],
-      maxZoom: 14,
-    });
+    const configBoundsOptions: Leaflet.FitBoundsOptions = {
+      padding: [30, 30],
+    };
+
+    this.map.fitBounds(bounds, configBoundsOptions);
   }
 
   public clearMarkers(): void {
@@ -92,11 +146,15 @@ export class MapService {
       .map(([category, categoryPoints]) => {
         const categoryHTML = categoryPoints
           .map(point => {
+            const subname = point.legendSubName
+              ? `<span class="legend-item__info--subname">${point.legendSubName}</span>`
+              : '';
             return `
-          <div class="legend-item" data-lat="${point.latitude}" data-lng="${point.longitude}">
-            <img class="legend-item--icon" src="${point.icon}" alt="${point.legendName}">
+          <div class="legend-item" data-index="${points.indexOf(point)}" style="margin-bottom: 10px;">
+            <img src="${point.icon}" alt="svg" class="legend-item--icon">
             <div class="legend-item__info">
-              <div class="legend-item__info--subname">${point.legendSubName}</div>
+              <span class="legend-item__info--name" style="color: ${point.color}">${point.legendName}</span>
+              ${subname}
             </div>
           </div>
         `;
@@ -131,10 +189,50 @@ export class MapService {
         const target = e.target as HTMLElement;
         const legendItem = target.closest('.legend-item');
         if (legendItem) {
-          const lat = parseFloat(legendItem.getAttribute('data-lat') || '0');
-          const lng = parseFloat(legendItem.getAttribute('data-lng') || '0');
-          this.map.setView([lat, lng], 13);
+          const index = parseInt(legendItem.getAttribute('data-index') || '0', 10);
+          const point = points[index];
+
+          if (point) {
+            const marker = this.markers[index];
+
+            // Close all open popups first and wait for close animation
+            this.map.closePopup();
+
+            // Wait for popup to close before starting zoom
+            setTimeout(() => {
+              // Add one-time listener for move end (setView triggers moveend)
+              const onMoveEnd = () => {
+                if (marker) {
+                  // Disable autoPan temporarily to prevent map movement
+                  const popup = marker.getPopup();
+                  if (popup) {
+                    const options = popup.options;
+                    const originalAutoPan = options.autoPan;
+                    options.autoPan = false;
+
+                    marker.openPopup();
+
+                    // Restore autoPan after a short delay
+                    setTimeout(() => {
+                      options.autoPan = originalAutoPan;
+                    }, 100);
+                  } else {
+                    marker.openPopup();
+                  }
+                }
+                this.map.off('moveend', onMoveEnd);
+              };
+
+              this.map.on('moveend', onMoveEnd);
+              this.zoomToPoint(point.latitude, point.longitude);
+            }, 100);
+          }
         }
+      });
+
+      // Prevent dblclick on legend items
+      div.addEventListener('dblclick', e => {
+        e.stopPropagation();
       });
 
       return div;
@@ -216,35 +314,33 @@ export class MapService {
     const legend = document.querySelector('.legend');
     if (!legend) return;
 
-    // Disable map scroll when mouse enters legend
+    // Disable only zoom-related features when mouse enters legend, but keep dragging enabled
     legend.addEventListener('mouseenter', () => {
       this.map.scrollWheelZoom.disable();
-      this.map.dragging.disable();
       this.map.doubleClickZoom.disable();
       this.map.touchZoom.disable();
+      // Dragging is NOT disabled - panning is allowed
     });
 
-    // Re-enable map scroll when mouse leaves legend
+    // Re-enable zoom features when mouse leaves legend
     legend.addEventListener('mouseleave', () => {
       this.map.scrollWheelZoom.enable();
-      this.map.dragging.enable();
       this.map.doubleClickZoom.enable();
       this.map.touchZoom.enable();
     });
 
-    // Also handle mobile touch events
+    // Also handle mobile touch events - disable zoom only
     legend.addEventListener('touchstart', () => {
       this.map.scrollWheelZoom.disable();
-      this.map.dragging.disable();
       this.map.doubleClickZoom.disable();
       this.map.touchZoom.disable();
+      // Dragging is NOT disabled - panning is allowed
     });
 
     legend.addEventListener('touchend', () => {
       // Small delay to prevent immediate re-enabling
       setTimeout(() => {
         this.map.scrollWheelZoom.enable();
-        this.map.dragging.enable();
         this.map.doubleClickZoom.enable();
         this.map.touchZoom.enable();
       }, 100);
@@ -260,49 +356,12 @@ export class MapService {
       bounds.extend([point.latitude, point.longitude]);
     });
 
-    // Add minimal padding around the bounds
-    const padding = 0.05; // 5% padding (zmniejszone z 10%)
-    const boundsWithPadding = bounds.pad(padding);
-
-    // Set map bounds
-    this.map.setMaxBounds(boundsWithPadding);
+    const configBoundsOptions: Leaflet.FitBoundsOptions = {
+      padding: [30, 30],
+    };
 
     // Fit map to show all points
-    this.map.fitBounds(bounds, {
-      padding: [10, 10], // 10px padding on all sides (zmniejszone z 20px)
-      maxZoom: 14, // Maximum zoom level reduced from 15
-    });
-
-    // Set minimum zoom to prevent too far zoom (zwiększone z 8)
-    this.map.setMinZoom(9);
-
-    // Add event listener to prevent panning outside bounds
-    this.map.on('drag', () => {
-      const currentBounds = this.map.getBounds();
-      const maxBounds = (
-        this.map as Leaflet.Map & { getMaxBounds: () => Leaflet.LatLngBounds }
-      ).getMaxBounds();
-
-      if (!maxBounds.contains(currentBounds)) {
-        // If trying to pan outside bounds, reset to valid position
-        this.map.setView(this.map.getCenter(), this.map.getZoom(), {
-          animate: false,
-        });
-      }
-    });
-
-    // Prevent zoom beyond reasonable limits
-    this.map.on('zoomend', () => {
-      const zoom = this.map.getZoom();
-      const minZoom = 9; // Zwiększone z 8
-      const maxZoom = 14; // Zmniejszone z 15
-
-      if (zoom < minZoom) {
-        this.map.setZoom(minZoom);
-      } else if (zoom > maxZoom) {
-        this.map.setZoom(maxZoom);
-      }
-    });
+    this.map.fitBounds(bounds, configBoundsOptions);
   }
 
   private addResetViewButton(): void {
@@ -348,5 +407,15 @@ export class MapService {
 
     // Add control to map
     this.map.addControl(new ResetViewControl({ position: 'topright' }));
+  }
+
+  private zoomToPoint(lat: number, lng: number): void {
+    // Adjust longitude slightly to offset the popup position
+    const modifiedValue = {
+      lat: lat,
+      lng: lng - 0.015,
+    };
+
+    this.map.setView(modifiedValue, 13);
   }
 }

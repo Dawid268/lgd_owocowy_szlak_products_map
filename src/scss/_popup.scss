@@ -3,24 +3,25 @@
 .leaflet-popup-content-wrapper {
   border-radius: $border-radius-lg;
   box-shadow: 0 4px 20px $shadow-heavy;
+  min-width: 490px !important;
+  display: flex;
 }
 
 .leaflet-popup-content {
-  margin: 0;
   padding: $spacing-lg;
-  min-width: 350px;
-  max-width: 450px;
+  margin: 0;
+  font-size: $font-size-text-popup;
+  display: flex;
+  min-width: 490px !important;
+
+  box-sizing: border-box;
 
   @include mobile {
     padding: $spacing-md;
-    min-width: $popup-width-mobile;
-    max-width: $popup-width-mobile;
   }
 
   @include tablet {
     padding: $spacing-md;
-    min-width: $popup-width-tablet;
-    max-width: $popup-width-tablet;
   }
 }
 
@@ -49,12 +50,12 @@
     &--name {
       font-size: $font-size-name;
       font-weight: bold;
-      margin-bottom: $spacing-sm;
+      margin-bottom: 34px;
       line-height: $line-height-tight;
     }
 
     &--address {
-      font-size: $font-size-text;
+      font-size: $font-size-text-popup;
       color: $text-color;
       margin-bottom: $spacing-xs;
       line-height: $line-height-normal;
@@ -75,20 +76,20 @@
 
   &--image {
     flex-shrink: 0;
-    width: 150px;
-    height: 100%;
+    width: $popup-image-width-desktop;
+    height: $popup-image-height-desktop;
     border-radius: $border-radius-md;
     object-fit: cover;
     box-shadow: 0 2px 8px $shadow-color;
 
     @include mobile {
-      width: $popup-image-mobile;
-      height: $popup-image-mobile;
+      width: $popup-image-width-mobile;
+      height: $popup-image-height-mobile;
     }
 
     @include tablet {
-      width: 120px;
-      height: 100%;
+      width: $popup-image-width-tablet;
+      height: $popup-image-height-tablet;
     }
   }
 
@@ -118,7 +119,7 @@
     a {
       color: $primary-color;
       text-decoration: none;
-      font-size: $font-size-text;
+      font-size: $font-size-text-popup;
 
       &:hover {
         text-decoration: underline;

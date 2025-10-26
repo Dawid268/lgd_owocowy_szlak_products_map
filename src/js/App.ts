@@ -73,8 +73,8 @@ export class App {
     }
   }
 
-  private initializeApp(): void {
-    this.mapService.addMarkers(this.points);
+  private async initializeApp(): Promise<void> {
+    await this.mapService.addMarkers(this.points);
     this.mapService.createLegend(this.points);
     this.cardService.addCards(this.points);
     this.generateFooter();
