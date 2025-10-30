@@ -16,55 +16,31 @@ services:
           memory: 128M
           cpus: '0.25'
     
-    # Environment variables
+    # Environment variables (Caddy doesn't need PORT, but keeping for compatibility)
     environment:
       - NODE_ENV=production
-      - PORT=8080
+      # Caddy will automatically handle HTTPS with Let's Encrypt
+      - ACME_AGREE=true
     
-    # Health check
+    # Health check (Caddy serves on /health endpoint)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     
-    # Labels for Traefik
-    labels:
-      # Enable Traefik for this service
-      - "traefik.enable=true"
-      
-      # HTTP router (HTTP) - FIXED CONFIGURATION
-      - "traefik.http.routers.lgd-map-http.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
-      - "traefik.http.routers.lgd-map-http.entrypoints=web"
-      - "traefik.http.routers.lgd-map-http.middlewares=lgd-map-stripprefix,lgd-map-compress"
-      
-      # HTTPS router (HTTPS) - FIXED CONFIGURATION
-      - "traefik.http.routers.lgd-map-https.rule=Host(`57.129.41.248`) && PathPrefix(`/lgd-demo`)"
-      - "traefik.http.routers.lgd-map-https.entrypoints=websecure"
-      - "traefik.http.routers.lgd-map-https.tls=true"
-      - "traefik.http.routers.lgd-map-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.lgd-map-https.middlewares=lgd-map-stripprefix,lgd-map-security,lgd-map-compress"
-      
-      # Service configuration
-      - "traefik.http.services.lgd-map.loadbalancer.server.port=8080"
-      
-      # Middleware configuration
-      - "traefik.http.middlewares.lgd-map-stripprefix.stripprefix.prefixes=/lgd-demo"
-      - "traefik.http.middlewares.lgd-map-security.headers.frameDeny=true"
-      - "traefik.http.middlewares.lgd-map-security.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.lgd-map-security.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.lgd-map-security.headers.referrerPolicy=strict-origin-when-cross-origin"
-      - "traefik.http.middlewares.lgd-map-compress.compress=true"
-      
-      # Debug labels
-      - "traefik.docker.network=traefik-public"
-      - "traefik.http.routers.lgd-map-http.priority=100"
-      - "traefik.http.routers.lgd-map-https.priority=100"
+    # Ports: 80 (HTTP) and 443 (HTTPS)
+    # Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
+    ports:
+      - "80:80"   # HTTP for Let's Encrypt challenge
+      - "443:443" # HTTPS (automatic certificate from Let's Encrypt)
     
-    # Networks
-    networks:
-      - traefik-public
+    # Volumes for Caddy data (certificates, config cache)
+    # These persist Let's Encrypt certificates between container restarts
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
     
     # Logging
     logging:
@@ -73,6 +49,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-networks:
-  traefik-public:
-    external: true
+volumes:
+  caddy_data:
+    # Persistent storage for Caddy certificates and keys
+    # Let's Encrypt certificates are stored here
+  caddy_config:
+    # Persistent storage for Caddy configuration cache

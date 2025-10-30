@@ -16,40 +16,33 @@ COPY . .
 # Build the application
 RUN npm run build:prod
 
-# Production stage
-FROM nginx:alpine AS production
+# Production stage with Caddy (automatic HTTPS with Let's Encrypt)
+FROM caddy:2.7-alpine AS production
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl for health checks (Caddy image already includes it)
+RUN apk add --no-cache curl || true
 
-# Copy custom nginx configuration
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-
-# Remove default nginx configuration that conflicts with our setup
-RUN rm -f /etc/nginx/conf.d/default.conf
+# Copy Caddyfile configuration
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Copy built application
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/caddy/html
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+# Create non-root user (Caddy already runs as non-root by default)
+# Caddy runs as user caddy (UID 101) by default, but we'll ensure proper ownership
+RUN chown -R caddy:caddy /usr/share/caddy/html && \
+    chown -R caddy:caddy /etc/caddy
 
-# Set ownership
-RUN chown -R nextjs:nodejs /usr/share/nginx/html && \
-    chown -R nextjs:nodejs /var/cache/nginx && \
-    chown -R nextjs:nodejs /var/log/nginx && \
-    chown -R nextjs:nodejs /etc/nginx/conf.d
+# Caddy already runs as non-root user (caddy:caddy)
+# No need to switch user - Caddy handles this
 
-# Switch to non-root user
-USER nextjs
-
-# Expose port
-EXPOSE 8080
+# Expose ports 80 (HTTP) and 443 (HTTPS)
+# Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
+EXPOSE 80 443
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/ || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Caddy
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
