@@ -28,13 +28,13 @@ COPY Caddyfile /etc/caddy/Caddyfile
 # Copy built application
 COPY --from=builder /app/dist /usr/share/caddy/html
 
-# Create non-root user (Caddy already runs as non-root by default)
-# Caddy runs as user caddy (UID 101) by default, but we'll ensure proper ownership
-RUN chown -R caddy:caddy /usr/share/caddy/html && \
-    chown -R caddy:caddy /etc/caddy
+# Set proper permissions for Caddy
+# Caddy Alpine image runs as root by default, but we ensure files are readable
+RUN chmod -R 755 /usr/share/caddy/html && \
+    chmod 644 /etc/caddy/Caddyfile
 
-# Caddy already runs as non-root user (caddy:caddy)
-# No need to switch user - Caddy handles this
+# Note: Caddy Alpine image runs as root by default for simplicity
+# For production, you might want to configure non-root user, but for demo this is fine
 
 # Expose ports 80 (HTTP) and 443 (HTTPS)
 # Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
