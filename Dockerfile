@@ -16,34 +16,40 @@ COPY . .
 # Build the application
 RUN npm run build:prod
 
-# Production stage with Caddy (automatic HTTPS with Let's Encrypt)
-FROM caddy:2.7-alpine AS production
+# Production stage
+FROM nginx:alpine AS production
 
-# Install curl for health checks (Caddy image already includes it)
-RUN apk add --no-cache curl || true
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-# Copy Caddyfile configuration
-COPY Caddyfile /etc/caddy/Caddyfile
+# Copy custom nginx configuration
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+# Remove default nginx configuration that conflicts with our setup
+RUN rm -f /etc/nginx/conf.d/default.conf
 
 # Copy built application
-COPY --from=builder /app/dist /usr/share/caddy/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Set proper permissions for Caddy
-# Caddy Alpine image runs as root by default, but we ensure files are readable
-RUN chmod -R 755 /usr/share/caddy/html && \
-    chmod 644 /etc/caddy/Caddyfile
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
-# Note: Caddy Alpine image runs as root by default for simplicity
-# For production, you might want to configure non-root user, but for demo this is fine
+# Set ownership
+RUN chown -R nextjs:nodejs /usr/share/nginx/html && \
+    chown -R nextjs:nodejs /var/cache/nginx && \
+    chown -R nextjs:nodejs /var/log/nginx && \
+    chown -R nextjs:nodejs /etc/nginx/conf.d
 
-# Expose ports 80 (HTTP) and 443 (HTTPS)
-# Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
-# Traefik proxies traffic to these ports
-EXPOSE 80 443
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
 
-# Start Caddy
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
