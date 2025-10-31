@@ -38,6 +38,7 @@ RUN chmod -R 755 /usr/share/caddy/html && \
 
 # Expose ports 80 (HTTP) and 443 (HTTPS)
 # Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
+# Traefik proxies traffic to these ports
 EXPOSE 80 443
 
 # Health check

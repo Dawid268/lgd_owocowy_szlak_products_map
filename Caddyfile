@@ -1,6 +1,6 @@
-# Caddyfile for lgd-demo.duckdns.org
-# Automatic HTTPS with Let's Encrypt
-# Demo configuration for client showcase
+# Caddyfile - Caddy provides SSL certificate with Let's Encrypt
+# Traefik proxies traffic to Caddy on ports 80 (HTTP) and 443 (HTTPS)
+# Caddy automatically gets Let's Encrypt certificate for this domain
 
 lgd-demo.duckdns.org {
     # Serve static files from /usr/share/caddy/html
@@ -45,16 +45,5 @@ lgd-demo.duckdns.org {
         output stdout
         format console
     }
-}
-
-# Fallback for direct IP access (optional)
-57.129.41.248 {
-    root * /usr/share/caddy/html
-    file_server
-    encode gzip
-    handle /health {
-        respond "OK" 200
-    }
-    try_files {path} /index.html
 }
 

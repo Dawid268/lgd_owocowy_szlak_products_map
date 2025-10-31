@@ -3,11 +3,11 @@ version: '3.8'
 services:
   lgd-map:
     image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
-    container_name: lgd-map-demo
-    restart: unless-stopped
     
-    # Resource limits (for Docker Swarm)
     deploy:
+      mode: replicated
+      replicas: 1
+      
       resources:
         limits:
           memory: 256M
@@ -15,14 +15,15 @@ services:
         reservations:
           memory: 128M
           cpus: '0.25'
+      
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 0
     
-    # Environment variables (Caddy doesn't need PORT, but keeping for compatibility)
     environment:
       - NODE_ENV=production
-      # Caddy will automatically handle HTTPS with Let's Encrypt
-      - ACME_AGREE=true
     
-    # Health check (Caddy serves on /health endpoint)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
@@ -30,28 +31,60 @@ services:
       retries: 3
       start_period: 40s
     
-    # Ports: 80 (HTTP) and 443 (HTTPS)
-    # Caddy will automatically get Let's Encrypt certificate via HTTP challenge on port 80
-    ports:
-      - "80:80"   # HTTP for Let's Encrypt challenge
-      - "443:443" # HTTPS (automatic certificate from Let's Encrypt)
+    # Traefik labels - Traefik handles routing, Caddy provides SSL certificate
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      
+      # HTTP router - Redirect to HTTPS (Traefik redirects to HTTPS, then proxies to Caddy)
+      - "traefik.http.routers.lgd-map-http.rule=Host(`lgd-demo.duckdns.org`)"
+      - "traefik.http.routers.lgd-map-http.entrypoints=web"
+      - "traefik.http.routers.lgd-map-http.middlewares=force-https-redirect"
+      
+      # HTTPS router - Traefik proxies HTTPS to Caddy HTTPS (port 443)
+      # Caddy provides SSL certificate, Traefik proxies HTTPS → Caddy HTTPS
+      # NOTE: Traefik will validate Caddy's certificate (may fail until Caddy gets cert)
+      - "traefik.http.routers.lgd-map-https.rule=Host(`lgd-demo.duckdns.org`)"
+      - "traefik.http.routers.lgd-map-https.entrypoints=websecure"
+      # Traefik proxies HTTPS to Caddy HTTPS - Caddy provides SSL cert
+      - "traefik.http.routers.lgd-map-https.tls=false"
+      # Skip TLS verification since Caddy will provide certificate
+      - "traefik.http.routers.lgd-map-https.service=lgd-map"
+      - "traefik.http.routers.lgd-map-https.middlewares=edge-standard,lgd-map-compress"
+      
+      # Service configuration - Caddy serves on port 443 (HTTPS)
+      # Caddy will automatically get Let's Encrypt certificate
+      # Traefik proxies HTTPS → Caddy HTTPS
+      - "traefik.http.services.lgd-map.loadbalancer.server.port=443"
+      # Skip TLS verification - Caddy will provide valid cert once obtained
+      - "traefik.http.services.lgd-map.loadbalancer.server.scheme=https"
+      
+      # HTTP router for Let's Encrypt HTTP challenge (must be BEFORE redirect)
+      # Traefik must proxy /.well-known/acme-challenge/* to Caddy on port 80
+      # This allows Caddy to complete Let's Encrypt HTTP challenge
+      # NOTE: This router must NOT redirect to HTTPS (priority higher than http redirect)
+      - "traefik.http.routers.lgd-map-acme.rule=Host(`lgd-demo.duckdns.org`) && PathPrefix(`/.well-known/acme-challenge`)"
+      - "traefik.http.routers.lgd-map-acme.entrypoints=web"
+      - "traefik.http.routers.lgd-map-acme.priority=100"
+      - "traefik.http.routers.lgd-map-acme.service=lgd-map-acme"
+      - "traefik.http.services.lgd-map-acme.loadbalancer.server.port=80"
+      
+      # Middleware: Compression
+      - "traefik.http.middlewares.lgd-map-compress.compress=true"
+      
+      # Service labels
+      - "service=lgd-map"
+      - "demo=true"
     
-    # Volumes for Caddy data (certificates, config cache)
-    # These persist Let's Encrypt certificates between container restarts
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
+    networks:
+      - traefik-public
     
-    # Logging
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-volumes:
-  caddy_data:
-    # Persistent storage for Caddy certificates and keys
-    # Let's Encrypt certificates are stored here
-  caddy_config:
-    # Persistent storage for Caddy configuration cache
+networks:
+  traefik-public:
+    external: true
