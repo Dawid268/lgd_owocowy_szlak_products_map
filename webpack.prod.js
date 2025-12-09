@@ -35,6 +35,18 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
+        test: /\.css$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: true,
+            },
+          },
+        ],
+      },
+      {
         test: /\.scss$/i,
         use: [
           MiniCssExtractPlugin.loader,
@@ -156,9 +168,9 @@ module.exports = {
           chunks: "all",
           priority: 20,
         },
-        glide: {
-          test: /[\\/]node_modules[\\/]@glidejs[\\/]/,
-          name: "glide",
+        swiper: {
+          test: /[\\/]node_modules[\\/]swiper[\\/]/,
+          name: "swiper",
           chunks: "all",
           priority: 20,
         },
