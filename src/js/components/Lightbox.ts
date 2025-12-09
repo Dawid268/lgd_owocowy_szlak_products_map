@@ -1,7 +1,13 @@
-import { LightboxTemplate } from '../templates/LightboxTemplate';
+import { Swiper } from 'swiper';
+import { Navigation, Pagination, Keyboard, Zoom } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/zoom';
 
 export class Lightbox {
   private container: HTMLElement | null = null;
+  private swiper: Swiper | null = null;
   private images: string[];
   private currentIndex: number;
   private onCloseCallback?: () => void;
@@ -10,7 +16,6 @@ export class Lightbox {
     this.images = images;
     this.currentIndex = currentIndex;
 
-    // Validate currentIndex
     if (this.currentIndex >= this.images.length) {
       this.currentIndex = 0;
     }
@@ -23,103 +28,112 @@ export class Lightbox {
   }
 
   private render(): void {
-    const existingLightbox = document.querySelector('.lightbox');
+    const existingLightbox = document.querySelector('.map-lightbox');
     if (existingLightbox) {
       existingLightbox.remove();
     }
 
-    // Validate images array
     if (!this.images || this.images.length === 0) {
       return;
     }
 
     this.container = document.createElement('div');
-    this.container.className = 'lightbox';
+    this.container.className = 'map-lightbox';
 
-    const currentImage = this.images[this.currentIndex];
+    const swiperHTML = `
+      <div class="map-lightbox__close">&times;</div>
+      <div class="swiper map-lightbox__swiper">
+        <div class="swiper-wrapper">
+          ${this.images
+            .map(
+              (img, index) => `
+            <div class="swiper-slide">
+              <div class="swiper-zoom-container">
+                <img src="${this.normalizeImagePath(img)}" alt="Image ${index + 1}" class="map-lightbox__image" />
+              </div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+        ${
+          this.images.length > 1
+            ? `
+          <div class="swiper-button-prev map-lightbox__nav--prev"></div>
+          <div class="swiper-button-next map-lightbox__nav--next"></div>
+          <div class="swiper-pagination map-lightbox__pagination"></div>
+        `
+            : ''
+        }
+      </div>
+    `;
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(
-      LightboxTemplate.generate(
-        this.normalizeImagePath(currentImage),
-        this.currentIndex,
-        this.images.length,
-        this.images.length > 1
-      ),
-      'text/html'
-    );
-    const fragment = document.createDocumentFragment();
-
-    Array.from(doc.body.children).forEach(child => {
-      fragment.appendChild(child);
-    });
-
-    this.container.appendChild(fragment);
-
+    this.container.innerHTML = swiperHTML;
     document.body.appendChild(this.container);
+
+    setTimeout(() => {
+      this.initializeSwiper();
+    }, 50);
+  }
+
+  private initializeSwiper(): void {
+    if (!this.container) return;
+
+    const swiperEl = this.container.querySelector('.map-lightbox__swiper') as HTMLElement;
+    if (!swiperEl) return;
+
+    this.swiper = new Swiper(swiperEl, {
+      modules: [Navigation, Pagination, Keyboard, Zoom],
+      initialSlide: this.currentIndex,
+      slidesPerView: 1,
+      spaceBetween: 20,
+      zoom: {
+        maxRatio: 3,
+        minRatio: 1,
+      },
+      navigation: {
+        nextEl: this.container.querySelector('.swiper-button-next') as HTMLElement,
+        prevEl: this.container.querySelector('.swiper-button-prev') as HTMLElement,
+      },
+      pagination: {
+        el: this.container.querySelector('.swiper-pagination') as HTMLElement,
+        type: 'fraction',
+        clickable: true,
+      },
+      keyboard: {
+        enabled: true,
+      },
+      loop: false,
+      speed: 300,
+    });
   }
 
   private attachEventListeners(): void {
     if (!this.container) return;
 
-    const closeButton = this.container.querySelector('.lightbox__close');
-    const prevButton = this.container.querySelector('.lightbox__nav--prev');
-    const nextButton = this.container.querySelector('.lightbox__nav--next');
-    const lightboxImage = this.container.querySelector('.lightbox');
+    const closeButton = this.container.querySelector('.map-lightbox__close');
+    const lightbox = this.container;
 
     const closeLightbox = () => {
       this.close();
     };
 
     closeButton?.addEventListener('click', closeLightbox);
-    lightboxImage?.addEventListener('click', closeLightbox);
 
-    prevButton?.addEventListener('click', e => {
-      e.stopPropagation();
-      this.previous();
-    });
-
-    nextButton?.addEventListener('click', e => {
-      e.stopPropagation();
-      this.next();
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox || (e.target as HTMLElement).classList.contains('map-lightbox')) {
+        closeLightbox();
+      }
     });
 
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         closeLightbox();
         document.removeEventListener('keydown', handleKeydown);
-      } else if (event.key === 'ArrowLeft') {
-        this.previous();
-      } else if (event.key === 'ArrowRight') {
-        this.next();
       }
     };
 
     document.addEventListener('keydown', handleKeydown);
-  }
-
-  private previous(): void {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.updateImage();
-    }
-  }
-
-  private next(): void {
-    if (this.currentIndex < this.images.length - 1) {
-      this.currentIndex++;
-      this.updateImage();
-    }
-  }
-
-  private updateImage(): void {
-    if (!this.container) return;
-
-    const image = this.container.querySelector('.lightbox__image') as HTMLImageElement;
-    const counter = this.container.querySelector('.lightbox__counter') as HTMLElement;
-
-    if (image) image.src = this.normalizeImagePath(this.images[this.currentIndex]);
-    if (counter) counter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
   }
 
   private normalizeImagePath(path: string | undefined): string {
@@ -130,6 +144,10 @@ export class Lightbox {
   }
 
   public close(): void {
+    if (this.swiper) {
+      this.swiper.destroy(true, true);
+      this.swiper = null;
+    }
     if (this.container) {
       this.container.remove();
       this.container = null;

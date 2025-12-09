@@ -7,19 +7,19 @@ export class LightboxTemplate {
   ): string {
     const navigationHTML = showNavigation
       ? `
-      <div class="lightbox__nav lightbox__nav--prev">&larr;</div>
-      <div class="lightbox__nav lightbox__nav--next">&rarr;</div>
+      <div class="map-lightbox__nav map-lightbox__nav--prev">&larr;</div>
+      <div class="map-lightbox__nav map-lightbox__nav--next">&rarr;</div>
     `
       : `
-      <div class="lightbox__nav lightbox__nav--prev lightbox__nav--hidden">&larr;</div>
-      <div class="lightbox__nav lightbox__nav--next lightbox__nav--hidden">&rarr;</div>
+      <div class="map-lightbox__nav map-lightbox__nav--prev map-lightbox__nav--hidden">&larr;</div>
+      <div class="map-lightbox__nav map-lightbox__nav--next map-lightbox__nav--hidden">&rarr;</div>
     `;
 
     return `
-      <div class="lightbox__close">&times;</div>
+      <div class="map-lightbox__close">&times;</div>
       ${navigationHTML}
-      <img class="lightbox__image" src="${imageSrc}" alt="Full size image">
-      <div class="lightbox__counter">${currentIndex + 1} / ${totalImages}</div>
+      <img class="map-lightbox__image" src="${imageSrc}" alt="Full size image">
+      <div class="map-lightbox__counter">${currentIndex + 1} / ${totalImages}</div>
     `;
   }
 }

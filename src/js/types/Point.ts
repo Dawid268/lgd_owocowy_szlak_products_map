@@ -12,6 +12,7 @@ export interface IPoint {
   images: string[];
   facebook: string;
   webpage: string;
+  booking: string;
   icon: string;
   description: string;
   color: string;
@@ -33,6 +34,7 @@ export class Point implements IPoint {
   images: string[];
   facebook: string;
   webpage: string;
+  booking: string;
   icon: string;
   description: string;
   color: string;
@@ -49,6 +51,7 @@ export class Point implements IPoint {
     images: string[],
     facebook: string,
     webpage: string,
+    booking: string,
     icon: string,
     legendName: string,
     legendSubName: string,
@@ -66,6 +69,7 @@ export class Point implements IPoint {
     this.images = images;
     this.facebook = facebook;
     this.webpage = webpage;
+    this.booking = booking;
     this.icon = icon;
     this.legendName = legendName;
     this.legendSubName = legendSubName;

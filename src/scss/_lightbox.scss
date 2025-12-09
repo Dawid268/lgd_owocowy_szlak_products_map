@@ -1,36 +1,62 @@
 @import 'variables';
 
-.lightbox {
+.map-lightbox {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: $overlay-bg;
+  background-color: var(--map-bg-overlay, $bg-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: $z-index-lightbox;
   cursor: pointer;
 
+  &__swiper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   &__image {
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
     object-fit: contain;
     border-radius: $border-radius-xl;
     box-shadow: 0 4px 20px $shadow-heavy;
+    cursor: default;
 
     @include mobile {
-      max-width: 95%;
-      max-height: 85%;
+      max-width: 95vw;
+      max-height: 85vh;
     }
+  }
+
+  .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .swiper-zoom-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
 
   &__close {
     position: absolute;
     top: $spacing-lg;
     right: $spacing-xxl;
-    color: $white;
+    color: var(--map-text-inverse, $text-inverse);
     font-size: $icon-size-close;
     font-weight: bold;
     cursor: pointer;
@@ -48,80 +74,61 @@
     }
 
     &:hover {
-      color: $gray-hover;
+      color: var(--map-text-tertiary, $text-tertiary);
     }
   }
 
-  &__nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: $white;
-    font-size: $icon-size-nav;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: $z-index-lightbox-content;
-    padding: $spacing-md $spacing-lg;
-    background-color: $overlay-lighter;
-    border-radius: $border-radius-full;
-    transition: background-color $transition-medium;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    line-height: 1;
-    text-align: center;
-    min-width: $touch-target-min;
-    min-height: $touch-target-min;
+  .swiper-button-prev,
+  .swiper-button-next {
+    color: var(--map-text-inverse, $text-inverse);
+    background: none;
+    border: none;
+
+    &.swiper-button-disabled,
+    &.swiper-button-lock {
+      opacity: 0.3;
+    }
+  }
+
+  .swiper-button-prev {
+    left: $spacing-lg;
 
     @include mobile {
-      width: 50px;
-      height: 50px;
-      font-size: 32px;
-    }
-
-    &:hover {
-      background-color: $overlay-light;
-    }
-
-    &--prev {
-      left: $spacing-xxl;
-
-      @include mobile {
-        left: $spacing-md;
-      }
-    }
-
-    &--next {
-      right: $spacing-xxl;
-
-      @include mobile {
-        right: $spacing-md;
-      }
-    }
-
-    &--hidden {
-      display: none;
+      left: $spacing-md;
     }
   }
 
-  &__counter {
+  .swiper-button-next {
+    right: $spacing-lg;
+
+    @include mobile {
+      right: $spacing-md;
+    }
+  }
+
+  &__pagination {
     position: absolute;
     bottom: $spacing-xxl;
     left: 50%;
     transform: translateX(-50%);
-    color: $white;
-    font-size: $font-size-medium;
-    background-color: $overlay-light;
-    padding: $carousel-padding $spacing-lg;
-    border-radius: $border-radius-pill;
     z-index: $z-index-lightbox-content;
+    width: auto !important;
 
     @include mobile {
       bottom: $spacing-lg;
-      font-size: 14px;
-      padding: $spacing-sm $spacing-md;
+    }
+
+    .swiper-pagination-fraction {
+      color: var(--map-text-inverse, $text-inverse);
+      font-size: $font-size-medium;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: $spacing-sm $spacing-lg;
+      border-radius: $border-radius-pill;
+
+      @include mobile {
+        font-size: 14px;
+        padding: $spacing-xs $spacing-md;
+      }
     }
   }
 }

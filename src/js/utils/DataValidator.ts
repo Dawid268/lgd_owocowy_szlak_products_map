@@ -12,6 +12,7 @@ export interface RawPointData {
   images?: string[];
   facebook?: string;
   webpage?: string;
+  booking?: string;
   icon?: string;
   description?: string;
   color?: string;
@@ -31,6 +32,7 @@ export interface ValidatedPointData {
   images: string[];
   facebook: string;
   webpage: string;
+  booking: string;
   icon: string;
   description: string;
   color: string;
@@ -55,6 +57,7 @@ export class DataValidator {
       images: this.validateStringArray(rawData.images),
       facebook: this.validateString(rawData.facebook),
       webpage: this.validateString(rawData.webpage),
+      booking: this.validateString(rawData.booking),
       icon: this.validateString(rawData.icon),
       description: this.validateString(rawData.description),
       color: this.validateString(rawData.color, this.DEFAULT_COLOR),

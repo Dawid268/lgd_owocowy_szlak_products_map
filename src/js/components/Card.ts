@@ -37,7 +37,7 @@ export class Card {
     }
 
     const carouselContainer = this.container.querySelector(
-      '.cards-container__item__carousel'
+      '.map-cards-container__item__carousel'
     ) as HTMLElement;
 
     if (!carouselContainer) {
@@ -49,7 +49,7 @@ export class Card {
 
   private attachEventListeners(): void {
     setTimeout(() => {
-      const slides = this.container.querySelectorAll('.glide__slide');
+      const slides = this.container.querySelectorAll('.swiper-slide');
 
       slides.forEach((slide, index) => {
         const img = slide.querySelector('img');
