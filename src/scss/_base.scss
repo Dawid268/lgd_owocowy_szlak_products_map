@@ -1,0 +1,132 @@
+@import 'variables';
+
+:root {
+  --map-bg-primary: #{$bg-primary};
+  --map-bg-secondary: #{$bg-secondary};
+  --map-bg-tertiary: #{$bg-tertiary};
+  --map-bg-overlay: #{$bg-overlay};
+  --map-border-primary: #{$border-primary};
+  --map-border-secondary: #{$border-secondary};
+  --map-border-light: #{$border-light};
+  --map-text-primary: #{$text-primary};
+  --map-text-secondary: #{$text-secondary};
+  --map-text-tertiary: #{$text-tertiary};
+  --map-text-inverse: #{$text-inverse};
+  --map-color-primary: #{$color-primary};
+  --map-color-primary-light: #{$color-primary-light};
+  --map-color-primary-dark: #{$color-primary-dark};
+  --map-color-success: #{$color-success};
+  --map-color-warning: #{$color-warning};
+  --map-color-error: #{$color-error};
+  --map-color-info: #{$color-info};
+}
+
+* {
+  @include touch-device {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+p,
+span,
+div,
+a,
+button {
+  @include touch-device {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
+.map-main-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 $spacing-sm;
+  box-sizing: border-box;
+
+  @include tablet {
+    width: $container-tablet;
+    padding: 0 $spacing-md;
+  }
+
+  @include desktop {
+    width: $main-container-width;
+    padding: 0 $spacing-md;
+  }
+}
+
+.map-data-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+
+  &--icon {
+    margin-right: $spacing-xs;
+    height: $icon-size-small;
+    width: $icon-size-small;
+  }
+
+  &--product {
+    text-transform: capitalize;
+  }
+
+  &--facebook {
+    height: $icon-size-medium;
+    width: $icon-size-medium;
+  }
+}
+
+.map-data__title {
+  display: flex;
+  text-transform: capitalize;
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: $spacing-sm;
+
+    &--name {
+      font-size: $font-size-medium;
+      font-weight: bold;
+      color: var(--map-color-primary, $color-primary);
+    }
+
+    &--subname {
+      font-size: $font-size-text;
+    }
+  }
+
+  &--icon {
+    width: $icon-size-large;
+    height: $icon-size-large;
+  }
+}
+
+.map-information {
+  &__basic {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+
+    &:first-child {
+      margin-right: $spacing-xxl;
+    }
+
+    img {
+      width: $icon-size-small;
+      height: $icon-size-small;
+    }
+  }
+}

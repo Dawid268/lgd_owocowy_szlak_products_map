@@ -1,32 +1,59 @@
 {
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "build": "webpack --mode production"
+    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --mode development",
+    "build:prod": "webpack --config webpack.prod.js",
+    "build:analyze": "webpack --config webpack.prod.js --env analyze",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit --skipLibCheck",
+    "lint": "eslint src --ext .ts,.tsx --fix",
+    "lint:check": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx,scss,css,html,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,scss,css,html,json}\"",
+    "quality": "npm run lint:check && npm run format:check && npm run type-check",
+    "quality:fix": "npm run lint && npm run format && npm run type-check",
+    "pre-commit": "npm run quality:fix",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{scss,css,html,json}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@types/leaflet": "^1.8.0",
-    "leaflet-legend": "^1.0.2"
+    "@types/tippy.js": "^6.3.0",
+    "swiper": "^12.0.3",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
-    "@squoosh/lib": "^0.4.0",
-    "@types/jquery": "^3.3.32",
-    "@types/leaflet": "^1.5.8",
+    "@types/leaflet": "^1.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "compression-webpack-plugin": "^11.1.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^4.1.0",
-    "fs-extra": "^10.1.0",
-    "globby": "^13.1.2",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "html-webpack-plugin": "^5.5.0",
-    "image-minimizer-webpack-plugin": "^3.6.0",
-    "imagemin": "^8.0.1",
-    "json-minimizer-webpack-plugin": "^4.0.0",
-    "leaflet": "^1.6.0",
+    "husky": "^9.1.7",
+    "leaflet": "^1.7.1",
+    "lint-staged": "^16.2.4",
     "mini-css-extract-plugin": "^2.6.1",
+    "prettier": "^3.6.2",
     "sass": "^1.54.9",
     "sass-loader": "^13.0.2",
     "ts-loader": "^9.3.1",
     "typescript": "^4.8.3",
     "webpack": "^5.74.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.11.0"
   }

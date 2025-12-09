@@ -1,0 +1,369 @@
+# Project Intelligence - LGD Owocowy Szlak Products Map
+
+## Critical Project Patterns
+
+### 1. Data Structure Pattern
+**Pattern**: Wszystkie dane biznesowe w `src/img/1/data.json`
+**Why**: Single source of truth, łatwa edycja bez zmian w kodzie
+**Impact**: Dodawanie nowych biznesów = edit JSON + dodaj assets
+**Never**: Hardcode business data w TypeScript
+**New**: Pole `images[]` dla galerii zdjęć (array of paths)
+
+### 2. Service Layer Architecture 🆕
+**Pattern**: App → Services → Components
+**Structure**:
+- `App.ts` - główny controller z orchestration
+- `services/MapService.ts` - zarządzanie Leaflet map
+- `services/CardService.ts` - zarządzanie kartami biznesów
+- `components/` - reusable UI components
+**Why**: Separation of concerns, testability, reusability
+**Never**: Mix business logic w components
+
+### 3. Component Pattern 🆕
+**Pattern**: Self-contained UI components (Card, Carousel, Lightbox)
+**Structure**: constructor → render → attachEventListeners
+**Why**: Reusability, encapsulation, clear responsibility
+**Example**: `Card` tworzy HTML + obsługuje events + integruje Carousel
+
+### 4. Fixed Width Design Philosophy  
+**Pattern**: Stała szerokość 665px (brak responsywności mobile)
+**Why**: Dedykowane do embedowania w konkretnym kontekście
+**Impact**: Wszelkie zmiany muszą uwzględniać fixed width
+**Note**: To celowa decyzja, nie bug
+
+### 5. Asset Organization
+**Pattern**: Wszystkie zasoby w `src/img/1/`
+- Icons: `*.svg` (8 typów dla kategorii)
+- Photos: `*.webp` (optimized)
+- Multiple images per business: `business_name_1.webp`, `_2.webp`, etc.
+- Data: `data.json`
+- Styles: `map-style.scss` (legacy) → `main.scss` (new)
+
+### 6. Build Entry Point
+**Pattern**: `src/js/map.ts` inicjalizuje `App.ts` który jest głównym controller
+**Import Chain**: map.ts → App.ts → Services → Components → types/Point → data.json
+**Never**: Zmieniaj entry point bez update webpack.config.js
+
+### 7. Color Coding System
+**Pattern**: Każdy biznes ma pole `color` (hex)
+**Usage**: Border-color w kartach, tekst w nagłówkach
+**Standard**: `#f39000` (pomarańczowy) dla większości
+**Impact**: Spójna kolorystyka według kategorii
+
+## Code Conventions
+
+### TypeScript Style
+```typescript
+// ✅ Good: Defensive programming
+const htmlImage = !!image 
+  ? `<img src=${image}>` 
+  : "";
+
+// ✅ Good: Early return guards
+if (!mapContainer) {
+  return;
+}
+
+// ✅ Good: Descriptive names
+generateAddressesHTML()  // not genAddr()
+
+// 🆕 Good: Class-based services
+class MapService {
+  constructor(containerId: string) {}
+  public addMarker(point: Point): Marker {}
+}
+
+// 🆕 Good: Private methods in classes
+private createCardElement(): HTMLElement {}
+```
+
+### HTML Generation
+```typescript
+// ✅ Good: Template literals dla HTML
+`<div class="container">${content}</div>`
+
+// ✅ Good: Conditional rendering
+${condition ? `<element>` : ""}
+
+// 🆕 Good: Component-based rendering
+const cardElement = document.createElement('div');
+cardElement.innerHTML = `...`;
+return cardElement;
+
+// ❌ Bad: innerHTML z untrusted data (nie używane w projekcie)
+```
+
+### Event Handling
+```typescript
+// ✅ Good: Named functions dla głównych handlers
+function zoomToPoint(event: LeafletEvent) { }
+
+// ✅ Good: Arrow functions dla inline
+marker.addEventListener('click', (e) => { })
+
+// 🆕 Good: Event delegation in components
+private attachEventListeners(): void {
+  this.container.querySelectorAll('.thumbnail')
+    .forEach(thumb => thumb.addEventListener('click', ...));
+}
+
+// 🆕 Good: Keyboard event handling
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') this.close();
+});
+```
+
+### Component Pattern
+```typescript
+// 🆕 Good: Component structure
+class Component {
+  private container: HTMLElement;
+  
+  constructor() {
+    this.container = this.render();
+    this.attachEventListeners();
+  }
+  
+  private render(): HTMLElement { }
+  private attachEventListeners(): void { }
+  public getElement(): HTMLElement { return this.container; }
+}
+```
+
+## Project-Specific Quirks
+
+### 1. Retry Logic for DOM Readiness 🆕
+**Current**: App constructor ma 100ms retry logic
+**Why**: Ensure map element ma proper dimensions przed init Leaflet
+**Location**: `App.ts`, constructor
+**Impact**: Rozwiązuje race condition przy ładowaniu
+
+### 2. Carousel Thumbnail Limit
+**Current**: Max 3 thumbnails visible + "+X more" indicator
+**Why**: UI design decision, prevents overflow
+**Location**: `Carousel.ts`, maxVisible = 3
+**Impact**: Więcej zdjęć = scrolling przez arrows
+
+### 3. Lightbox Fullscreen Overlay
+**Current**: Click overlay to close (w dodatku do ESC i close button)
+**Why**: Common UX pattern dla modal/lightbox
+**Location**: `Lightbox.ts`, attachEventListeners
+**Impact**: Multiple ways to close enhance UX
+
+### 4. Leaflet Version Mismatch
+**package.json**: 1.6.0
+**CDN**: 1.7.1  
+**Status**: Działa, ale niespójne - do sync'u
+**Fix**: Update package.json OR CDN link
+
+### 5. Legend Position Change
+**Old**: bottom-left
+**New**: bottom-right
+**Why**: Prawdopodobnie lepsze UX
+**Location**: `MapService.ts`, createLegend position
+
+### 6. Webpack CopyPlugin Duplicate
+**Current**: Dwa osobne CopyPlugin dla tego samego source
+**Status**: Działa ale redundant
+**Fix**: Merge do jednego
+
+## Development Workflow
+
+### Adding New Business Point
+1. Edit `src/img/1/data.json`
+2. Add object with ALL required fields:
+   ```json
+   {
+     "color": "#f39000",
+     "latitude": 51.xxx,
+     "longitude": 21.xxx,
+     "name": "Nazwa",
+     "addresses": ["Adres"],
+     "emails": ["email"] or null,
+     "phoneNumbers": ["+48xxx"] or null,
+     "product": "kategoria",
+     "image": "./img/1/file.webp" or null,
+     "images": ["./img/1/file_1.webp", "./img/1/file_2.webp"] or [],
+     "facebook": "url" or null,
+     "webpage": "url" or null,
+     "icon": "./img/1/icon.svg",
+     "legendName": "kategoria",
+     "legendSubName": "Wyświetlana nazwa",
+     "description": "Pełny opis..."
+   }
+   ```
+3. Add SVG icon if new category
+4. Add WebP photos - multiple if gallery needed
+5. Run `npm run start` to test
+6. Check: marker, popup, legend, card, carousel (if multiple images), lightbox
+
+### Running Development
+```bash
+npm run start  # Port 4000
+# Check http://localhost:4000
+```
+
+### Building for Production
+```bash
+npm run build
+# Output in dist/
+# Deploy entire dist/ folder
+```
+
+## Optimization Opportunities
+
+### High Value, Medium Effort
+1. **Lazy Loading Images**: Intersection Observer dla kart
+   - Benefit: ~2-3MB savings initial load
+   - Implementation: ~8h
+   - Risk: Low
+
+2. **Error Handling**: Try-catch + fallbacks
+   - Benefit: Better UX
+   - Implementation: ~4h
+   - Risk: Low
+
+### Medium Value, High Effort
+1. **Mobile Responsiveness**: Redesign dla mobile
+   - Benefit: Wider audience
+   - Implementation: ~2-3 days
+   - Risk: Medium (może konflikt z embed context)
+
+2. **CMS Integration**: Backend dla content management
+   - Benefit: Non-tech updates
+   - Implementation: ~1-2 weeks
+   - Risk: High (architecture change)
+
+## Known Technical Debt
+
+### Priority Order
+1. Leaflet version sync (2h, low risk)
+2. Remove jQuery types (30min, zero risk)
+3. Webpack CopyPlugin cleanup (1h, low risk)
+4. Clarify popup close behavior (1h, low risk)
+
+### Don't Touch Unless Necessary
+- Module structure (Point, utils, map)
+- Data JSON schema
+- SCSS architecture
+- Webpack loaders
+
+## Testing Checklist
+
+### After Any Change:
+- [ ] `npm run build` succeeds
+- [ ] All 25 markers render
+- [ ] Legend shows all items (grouped by category)
+- [ ] Legend clicks zoom correctly
+- [ ] Popups show correct data
+- [ ] All 25 cards render below map
+- [ ] 🆕 Carousels show thumbnails (dla biznesów z multiple images)
+- [ ] 🆕 Carousel arrows navigate correctly
+- [ ] 🆕 Lightbox opens on thumbnail click
+- [ ] 🆕 Lightbox keyboard navigation works (←, →, ESC)
+- [ ] 🆕 Lightbox counter shows correct X/Y
+- [ ] Contact links work (tel:, mailto:, https:)
+- [ ] Images load correctly
+- [ ] Footer displays properly
+
+### Before Commit:
+- [ ] No TypeScript errors
+- [ ] No console errors in browser
+- [ ] dist/ builds cleanly
+- [ ] Test in Chrome/Firefox/Safari
+
+## Communication Patterns
+
+### With Client (LGD)
+- **Language**: Polish
+- **Focus**: User impact, business value
+- **Avoid**: Technical jargon
+- **Emphasize**: EU funding context
+
+### With Users (Tourists)
+- **Assumption**: Desktop/laptop users primarily
+- **Goal**: Easy discovery of local businesses
+- **Priority**: Clear information, working links
+
+### With Team
+- **Language**: Polish/English mix
+- **Focus**: Technical accuracy
+- **Tools**: Git, VS Code
+- **Standards**: TypeScript, webpack, modern practices
+
+## Memory Bank Updates
+
+### Update When:
+1. **Significant code changes** - Update systemPatterns.md, techContext.md
+2. **New features added** - Update progress.md, activeContext.md
+3. **Architecture changes** - Update systemPatterns.md
+4. **Business data changes** - Update productContext.md if structure changes
+5. **After major decisions** - Update activeContext.md
+
+### Check Before Coding:
+1. Read activeContext.md for current state
+2. Check progress.md for known issues
+3. Review systemPatterns.md for patterns
+4. Consult techContext.md for tech constraints
+
+## Project Philosophy
+
+### Core Principles
+1. **Simplicity**: Proste rozwiązanie dla prostego problemu
+2. **Maintainability**: Łatwe dodawanie nowych punktów
+3. **Performance**: Szybkie ładowanie (w ramach ograniczeń)
+4. **Reliability**: Defensive programming, error prevention
+
+### What This Project Is
+- Showcase dla lokalnych biznesów
+- Narzędzie dla turystów
+- Projekt współfinansowany przez UE
+- Production-ready static web app
+
+### What This Project Is NOT
+- Complex SPA z routing
+- Mobile-first application
+- Real-time data platform
+- Multi-user system with auth
+
+## Success Metrics (Assumed)
+
+### Primary
+- Map loads < 3s
+- All 25 points visible
+- All links work
+- Professional appearance
+
+### Secondary
+- User engagement (via future analytics)
+- Business feedback
+- Tourist satisfaction
+- Grant compliance
+
+## Future-Proofing Notes
+
+### If Scaling Beyond 50 Points
+- Consider marker clustering
+- Implement lazy loading
+- Add pagination to cards
+- Optimize bundle size
+
+### If Adding Mobile Support
+- Redesign for responsive
+- Test on various devices
+- Consider touch interactions
+- Optimize for smaller screens
+
+### If Internationalizing
+- i18n framework (react-intl, i18next)
+- Translate all UI strings
+- Consider URL routing per language
+- RTL support if needed
+
+---
+
+Last Updated: 18.10.2025 PM (post refactoring)
+Memory Bank Created: 18.10.2025 AM
+Major Refactoring: 18.10.2025 PM
+Project Status: Production-ready, enhanced with gallery feature
+Architecture: Service Layer + Component Pattern

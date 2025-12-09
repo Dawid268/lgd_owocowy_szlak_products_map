@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+// const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 module.exports = {
   entry: "./src/js/map.ts",
@@ -17,10 +17,6 @@ module.exports = {
         test: /\.ts?$/,
         use: "ts-loader",
         exclude: /node_modules/,
-      },
-      {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.css$/i,
@@ -53,33 +49,34 @@ module.exports = {
       filename: "img/1/map-style.css",
     }),
     new CopyPlugin({
-      patterns: [{ from: "src/img/1", to: "img/1" }],
-    }),
-    new CopyPlugin({
-      patterns: [{ from: "src/img/1/data.json", to: "img/1" }],
+      patterns: [
+        { 
+          from: "src/img/1", 
+          to: "img/1",
+          filter: (resourcePath) => {
+            // Copy all files from src/img/1 directory
+            return true;
+          }
+        },
+      ],
     }),
   ],
   optimization: {
-    minimizer: [
-      new ImageMinimizerPlugin({
-        minimizer: {
-          implementation: ImageMinimizerPlugin.squooshMinify,
-          options: {
-            encodeOptions: {
-              mozjpeg: {
-                quality: 10,
-              },
-              webp: {
-                lossless: 1,
-              },
-              avif: {
-                cqLevel: 0,
-              },
-            },
-          },
-        },
-      }),
-    ],
+    // ImageMinimizerPlugin disabled due to missing dependency
+    // minimizer: [
+    //   new ImageMinimizerPlugin({
+    //     minimizer: {
+    //       implementation: ImageMinimizerPlugin.squooshMinify,
+    //       options: {
+    //         encodeOptions: {
+    //           mozjpeg: { quality: 10 },
+    //           webp: { lossless: 1 },
+    //           avif: { cqLevel: 0 },
+    //         },
+    //       },
+    //     },
+    //   }),
+    // ],
   },
   devServer: {
     static: path.join(__dirname, "dist"),

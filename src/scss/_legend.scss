@@ -1,0 +1,318 @@
+@import 'variables';
+
+.map-legend {
+  background-color: var(--map-bg-secondary, $bg-secondary);
+  padding: $legend-padding;
+  padding-right: 2px;
+  border-right: 1px solid var(--map-border-primary, $border-primary);
+  border-top: 1px solid var(--map-border-primary, $border-primary);
+  border-radius: $legend-border-radius;
+  box-shadow: 0 2px 8px $shadow-light;
+  display: flex;
+  flex-direction: column;
+  height: $legend-height-desktop;
+  overflow-y: auto;
+  width: $legend-width-desktop;
+  bottom: 0;
+  left: 0;
+  z-index: $z-index-legend;
+  opacity: $opacity-legend;
+  pointer-events: auto; // Umożliwia interakcję z legendą
+
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 1px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  @include mobile {
+    width: $legend-width-mobile;
+    height: auto;
+    position: fixed;
+    top: -100%;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    border-radius: 0 0 $border-radius-xl $border-radius-xl;
+    border: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    max-height: 70vh;
+    opacity: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: $z-index-legend + 10;
+    backdrop-filter: blur(10px);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.9) 100%
+    );
+    border-top: 3px solid var(--map-color-primary, $color-primary);
+
+    &.map-legend--open {
+      top: 0;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &::before {
+    @include mobile {
+      content: 'Legenda';
+      display: block;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
+      padding: $spacing-md $spacing-lg;
+      font-size: $font-size-medium;
+      font-weight: bold;
+      text-align: center;
+      border-radius: $border-radius-xl $border-radius-xl 0 0;
+      margin: 0;
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  @include tablet {
+    width: $legend-width-tablet;
+    height: $legend-height-tablet;
+  }
+
+  &:hover {
+    opacity: $opacity-legend-hover;
+
+    @include mobile {
+      opacity: 1;
+    }
+  }
+
+  @include desktop {
+    &:hover {
+      cursor: auto;
+    }
+  }
+}
+
+.map-legend-category {
+  margin: $spacing-xs 0;
+
+  &--name {
+    font-size: $font-size-text;
+    font-weight: bold;
+    text-transform: capitalize;
+    margin-bottom: $spacing-xs;
+    padding: 4px;
+    background-color: var(--map-bg-tertiary, $bg-tertiary);
+    border-radius: $border-radius-sm;
+    color: var(--map-text-primary, $text-primary);
+  }
+}
+
+.map-legend-item {
+  margin: $spacing-xs 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: $spacing-xs;
+  border-radius: $border-radius-sm;
+  transition: background-color $transition-fast;
+  min-height: $touch-target-min;
+  font-size: $font-size-small;
+  width: 100%;
+  box-sizing: border-box;
+
+  @include mobile {
+    padding: $spacing-md;
+    margin: $spacing-sm 0;
+    border-radius: $border-radius-md;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  &:hover {
+    background-color: var(--map-bg-secondary, $bg-secondary);
+  }
+
+  @include touch-device {
+    &:hover {
+      background-color: transparent;
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.9);
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  &--icon {
+    width: $icon-size-legend;
+    height: $icon-size-legend;
+    flex-shrink: 0;
+    margin-right: $carousel-padding;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    text-transform: capitalize;
+    margin-left: $spacing-xs;
+    word-break: keep-all;
+    flex: 1;
+    min-width: 0;
+
+    &--name {
+      font-size: $font-size-small;
+      font-weight: bold;
+    }
+
+    &--subname {
+      font-size: $font-size-md;
+      text-align: start;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+      min-width: 0;
+      color: var(--map-text-primary, $text-primary);
+    }
+  }
+}
+
+.map-legend-toggle {
+  display: none;
+
+  @include mobile {
+    display: flex;
+    position: fixed;
+    top: $spacing-md;
+    left: $spacing-md;
+    z-index: $z-index-legend + 20;
+    background: linear-gradient(
+      135deg,
+      var(--map-bg-primary, $bg-primary) 0%,
+      var(--map-bg-secondary, $bg-secondary) 100%
+    );
+    border: 2px solid var(--map-color-primary, $color-primary);
+    border-radius: $border-radius-full;
+    padding: $spacing-md;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    width: $touch-target-ideal;
+    height: $touch-target-ideal;
+    align-items: center;
+    justify-content: center;
+    font-size: $font-size-medium;
+    color: var(--map-color-primary, $color-primary);
+    font-weight: bold;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &--open {
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
+      transform: rotate(90deg);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+@include mobile {
+  .map-legend {
+    padding-top: 0;
+  }
+
+  .map-legend-category {
+    margin: $spacing-sm 0;
+
+    &--name {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--map-border-light, $border-light);
+      font-size: $font-size-text;
+      margin-bottom: $spacing-sm;
+      padding: 4px;
+      border-radius: $border-radius-md;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      color: var(--map-text-primary, $text-primary);
+    }
+  }
+
+  .map-legend-item {
+    &--icon {
+      width: 24px;
+      height: 24px;
+      margin-right: $spacing-md;
+
+      svg {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+      }
+    }
+
+    &__info {
+      flex: 1;
+      min-width: 0;
+
+      &--name {
+        font-size: $font-size-small;
+        font-weight: 600;
+      }
+
+      &--subname {
+        font-size: $font-size-md;
+        opacity: 0.8;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        min-width: 0;
+        color: var(--map-text-primary, $text-primary);
+      }
+    }
+  }
+}

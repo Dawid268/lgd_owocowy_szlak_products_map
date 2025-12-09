@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  lgd-map:
+    image: ghcr.io/dawid268/lgd_owocowy_szlak_products_map/lgd-map:staging
+    
+    deploy:
+      mode: replicated
+      replicas: 1
+      
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+      
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 0
+    
+    environment:
+      - NODE_ENV=production
+      - ACME_AGREE=true
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # IMPORTANT: Port 80 is required for Let's Encrypt HTTP challenge
+    # If Traefik is running on port 80, you need to stop it temporarily:
+    # docker service scale portainer-edge-gateway_traefik=0
+    # Then deploy this stack
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    labels:
+      - "service=lgd-map"
+      - "demo=true"
+
+volumes:
+  caddy_data:
+  caddy_config:
+

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2019 (64-Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="131px" height="131px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 32.16 32.16"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:#F8B047;stroke-width:0.46;stroke-linecap:round;stroke-miterlimit:10}
+    .fil2 {fill:none;fill-rule:nonzero}
+    .fil1 {fill:#F8B047;fill-rule:nonzero}
+    .fil0 {fill:#382B4B;fill-rule:nonzero}
+   ]]>
+  </style>
+ </defs>
+ <g id="Warstwa_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M32.16 16.08c0,8.88 -7.2,16.08 -16.08,16.08 -8.88,0 -16.08,-7.2 -16.08,-16.08 0,-8.88 7.2,-16.08 16.08,-16.08 8.88,0 16.08,7.2 16.08,16.08z"/>
+  <g>
+   <path class="fil1" d="M19.49 14.88l0.01 0 -0.01 0zm0.66 -0.92l-0.66 0 -6.45 0 -0.67 0 0.24 0.62 3.29 8.72 0.44 1.17 0.42 -1.17 3.17 -8.73 0.22 -0.61zm-0.66 0.46l-3.16 8.72 -3.29 -8.72 6.45 0z"/>
+  </g>
+  <path class="fil2 str0" d="M12.57 13.68c-0.21,-0.33 -0.33,-0.72 -0.31,-1.14 0.05,-1.1 0.97,-1.95 2.06,-1.9 1.1,0.05 1.94,0.97 1.9,2.06 -0.01,0.22 -0.05,0.42 -0.12,0.61"/>
+  <path class="fil2 str0" d="M16.87 10.63c1.1,-0.54 2.43,-0.09 2.98,1.01 0.27,0.55 0.29,1.16 0.11,1.7"/>
+  <path class="fil2 str0" d="M13.91 10.13c-0.23,-1.21 0.57,-2.37 1.78,-2.6 1.21,-0.22 2.37,0.57 2.6,1.78"/>
+  <line class="fil2 str0" x1="18.55" y1="17.44" x2="15.38" y2= "20.61" />
+  <line class="fil2 str0" x1="18.36" y1="14.22" x2="14.45" y2= "18.13" />
+ </g>
+</svg>
