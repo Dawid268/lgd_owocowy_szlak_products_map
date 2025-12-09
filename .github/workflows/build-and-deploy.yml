@@ -85,9 +85,7 @@ jobs:
           cache-from: |
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache
-          cache-to: |
-            type=gha,mode=max
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+          cache-to: type=gha,mode=max
 
       - name: Test Container
         if: github.event_name == 'pull_request'
