@@ -1,3 +1,6 @@
+import tippy, { Instance } from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
+
 export interface LegendItemData {
   latitude: number;
   longitude: number;
@@ -11,11 +14,13 @@ export class LegendItem {
   private data: LegendItemData;
   private element: HTMLElement;
   private onClickCallback?: (lat: number, lng: number) => void;
+  private tooltipInstance: Instance | null = null;
 
   constructor(data: LegendItemData) {
     this.data = data;
     this.element = this.render();
     this.attachEventListeners();
+    this.initializeTooltip();
   }
 
   private render(): HTMLElement {
@@ -32,22 +37,37 @@ export class LegendItem {
     const infoDiv = document.createElement('div');
     infoDiv.className = 'legend-item__info';
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'legend-item__info--name';
-    nameDiv.style.color = this.data.color;
-    nameDiv.textContent = this.data.legendName;
-
     const subnameDiv = document.createElement('div');
     subnameDiv.className = 'legend-item__info--subname';
     subnameDiv.textContent = this.data.legendSubName;
 
-    infoDiv.appendChild(nameDiv);
     infoDiv.appendChild(subnameDiv);
 
     div.appendChild(img);
     div.appendChild(infoDiv);
 
     return div;
+  }
+
+  private initializeTooltip(): void {
+    const subnameElement = this.element.querySelector('.legend-item__info--subname') as HTMLElement;
+
+    if (!subnameElement || !this.data.legendSubName) {
+      return;
+    }
+
+    const isTruncated = subnameElement.scrollWidth > subnameElement.clientWidth;
+
+    if (isTruncated) {
+      this.tooltipInstance = tippy(subnameElement, {
+        content: this.data.legendSubName,
+        placement: 'top',
+        theme: 'light',
+        arrow: true,
+        delay: [200, 0],
+        duration: [200, 150],
+      });
+    }
   }
 
   private attachEventListeners(): void {
@@ -68,5 +88,12 @@ export class LegendItem {
 
   public getData(): LegendItemData {
     return this.data;
+  }
+
+  public destroy(): void {
+    if (this.tooltipInstance) {
+      this.tooltipInstance.destroy();
+      this.tooltipInstance = null;
+    }
   }
 }

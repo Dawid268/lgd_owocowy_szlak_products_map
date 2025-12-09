@@ -1,45 +1,58 @@
 @import 'variables';
 
 .leaflet-popup-content-wrapper {
-  border-radius: $border-radius-lg;
+  border-radius: $border-radius-md;
   box-shadow: 0 4px 20px $shadow-heavy;
-  min-width: 490px !important;
+  min-width: 90vw !important;
+  max-width: 90vw !important;
   display: flex;
+
+  @include tablet {
+    min-width: 400px !important;
+    max-width: 400px !important;
+    border-radius: $border-radius-lg;
+  }
+
+  @include desktop {
+    min-width: 490px !important;
+    max-width: 490px !important;
+  }
 }
 
 .leaflet-popup-content {
-  padding: $spacing-lg;
+  padding: $spacing-md;
   margin: 0;
-  font-size: $font-size-text-popup;
+  font-size: $font-size-text-card;
   display: flex;
-  min-width: 490px !important;
-
+  min-width: 100% !important;
   box-sizing: border-box;
-
-  @include mobile {
-    padding: $spacing-md;
-  }
 
   @include tablet {
     padding: $spacing-md;
+    font-size: $font-size-text-popup;
+  }
+
+  @include desktop {
+    padding: $spacing-lg;
+    font-size: $font-size-text-popup;
   }
 }
 
-.popup-container {
+.map-popup-container {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: $spacing-lg;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
   width: 100%;
   height: 100%;
 
-  @include mobile {
-    flex-direction: column;
-    gap: $spacing-sm;
-    align-items: center;
+  @include desktop {
+    flex-direction: row;
+    align-items: stretch;
+    gap: $spacing-lg;
   }
 
-  .data__title__container {
+  .map-data__title__container {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -48,15 +61,22 @@
     justify-content: flex-start;
 
     &--name {
-      font-size: $font-size-name;
+      font-size: $font-size-lg;
       font-weight: bold;
-      margin-bottom: 34px;
+      margin-bottom: $spacing-md;
       line-height: $line-height-tight;
+      text-align: center;
+
+      @include desktop {
+        font-size: $font-size-name;
+        margin-bottom: 34px;
+        text-align: left;
+      }
     }
 
     &--address {
       font-size: $font-size-text-popup;
-      color: $text-color;
+      color: var(--map-text-primary, $text-primary);
       margin-bottom: $spacing-xs;
       line-height: $line-height-normal;
     }
@@ -76,24 +96,24 @@
 
   &--image {
     flex-shrink: 0;
-    width: $popup-image-width-desktop;
-    height: $popup-image-height-desktop;
+    width: $popup-image-width-mobile;
+    height: $popup-image-height-mobile;
     border-radius: $border-radius-md;
     object-fit: cover;
     box-shadow: 0 2px 8px $shadow-color;
-
-    @include mobile {
-      width: $popup-image-width-mobile;
-      height: $popup-image-height-mobile;
-    }
 
     @include tablet {
       width: $popup-image-width-tablet;
       height: $popup-image-height-tablet;
     }
+
+    @include desktop {
+      width: $popup-image-width-desktop;
+      height: $popup-image-height-desktop;
+    }
   }
 
-  .data-container {
+  .map-data-container {
     display: flex;
     align-items: center;
     gap: $spacing-xs;
@@ -107,7 +127,7 @@
 
     &--product {
       font-size: $font-size-small;
-      color: $text-color;
+      color: var(--map-text-primary, $text-primary);
       font-style: italic;
     }
 
@@ -117,7 +137,7 @@
     }
 
     a {
-      color: $primary-color;
+      color: var(--map-color-primary, $color-primary);
       text-decoration: none;
       font-size: $font-size-text-popup;
 

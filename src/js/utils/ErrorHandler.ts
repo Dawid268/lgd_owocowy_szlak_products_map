@@ -1,6 +1,5 @@
 export class ErrorHandler {
   public static handleNetworkError(error: Error, context: string): void {
-    // eslint-disable-next-line no-console
     console.error(`Network error in ${context}:`, error);
     this.showUserMessage(
       'Wystąpił problem z połączeniem. Sprawdź połączenie internetowe i odśwież stronę.'
@@ -8,19 +7,16 @@ export class ErrorHandler {
   }
 
   public static handleDataError(error: Error, context: string): void {
-    // eslint-disable-next-line no-console
     console.error(`Data error in ${context}:`, error);
     this.showUserMessage('Wystąpił problem z danymi. Spróbuj odświeżyć stronę.');
   }
 
   public static handleMapError(error: Error): void {
-    // eslint-disable-next-line no-console
     console.error('Map initialization error:', error);
     this.showUserMessage('Nie udało się załadować mapy. Sprawdź połączenie internetowe.');
   }
 
   public static handleImageError(imageSrc: string): void {
-    // eslint-disable-next-line no-console
     console.warn(`Failed to load image: ${imageSrc}`);
   }
 

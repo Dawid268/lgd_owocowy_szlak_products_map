@@ -7,6 +7,7 @@ import { IconService } from './services/IconService';
 import { DataValidator, RawPointData } from './utils/DataValidator';
 import { ErrorHandler } from './utils/ErrorHandler';
 import { LazyLoader } from './utils/LazyLoader';
+import { ImageLoader } from './utils/ImageLoader';
 
 export class App {
   private mapService!: MapService;
@@ -16,7 +17,7 @@ export class App {
   constructor() {
     const initApp = async () => {
       const mapElement = document.querySelector('#leaflet-map');
-      const cardsContainer = document.querySelector('.cards-container');
+      const cardsContainer = document.querySelector('.map-cards-container');
 
       if (!mapElement || !cardsContainer) {
         setTimeout(initApp, 100);
@@ -32,8 +33,8 @@ export class App {
       try {
         await IconService.loadIcons();
         this.mapService = new MapService('#leaflet-map');
-        this.cardService = new CardService('.cards-container');
-        this.initializeData();
+        this.cardService = new CardService('.map-cards-container');
+        await this.initializeData();
         this.initializeApp();
         LazyLoader.initialize();
       } catch (error) {
@@ -44,30 +45,54 @@ export class App {
     setTimeout(initApp, 100);
   }
 
-  private initializeData(): void {
+  private async initializeData(): Promise<void> {
     try {
-      this.points = points.map((rawPoint: RawPointData) => {
-        const validatedData = DataValidator.validatePointData(rawPoint);
+      const processedPoints = await Promise.all(
+        points.map(async (rawPoint: RawPointData) => {
+          const validatedData = DataValidator.validatePointData(rawPoint);
 
-        return new Point(
-          validatedData.latitude,
-          validatedData.longitude,
-          validatedData.name,
-          validatedData.addresses,
-          validatedData.emails,
-          validatedData.phoneNumbers,
-          validatedData.product,
-          validatedData.image,
-          validatedData.images,
-          validatedData.facebook,
-          validatedData.webpage,
-          validatedData.icon,
-          validatedData.legendName,
-          validatedData.legendSubName,
-          validatedData.description,
-          validatedData.color
-        );
-      });
+          const folderName =
+            ImageLoader.extractFolderName(validatedData.image) ||
+            ImageLoader.extractFolderName(validatedData.images[0] || '') ||
+            null;
+
+          let resolvedImage = validatedData.image;
+          let resolvedImages = validatedData.images;
+
+          if (folderName) {
+            const processed = await ImageLoader.processImages(
+              folderName,
+              validatedData.image || null,
+              validatedData.images
+            );
+
+            resolvedImage = processed.image || validatedData.image || '';
+            resolvedImages = processed.images.length > 0 ? processed.images : validatedData.images;
+          }
+
+          return new Point(
+            validatedData.latitude,
+            validatedData.longitude,
+            validatedData.name,
+            validatedData.addresses,
+            validatedData.emails,
+            validatedData.phoneNumbers,
+            validatedData.product,
+            resolvedImage,
+            resolvedImages,
+            validatedData.facebook,
+            validatedData.webpage,
+            validatedData.booking,
+            validatedData.icon,
+            validatedData.legendName,
+            validatedData.legendSubName,
+            validatedData.description,
+            validatedData.color
+          );
+        })
+      );
+
+      this.points = processedPoints;
     } catch (error) {
       ErrorHandler.handleDataError(error as Error, 'App.initializeData');
     }

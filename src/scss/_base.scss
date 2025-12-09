@@ -1,6 +1,26 @@
 @import 'variables';
 
-// Global mobile optimizations
+:root {
+  --map-bg-primary: #{$bg-primary};
+  --map-bg-secondary: #{$bg-secondary};
+  --map-bg-tertiary: #{$bg-tertiary};
+  --map-bg-overlay: #{$bg-overlay};
+  --map-border-primary: #{$border-primary};
+  --map-border-secondary: #{$border-secondary};
+  --map-border-light: #{$border-light};
+  --map-text-primary: #{$text-primary};
+  --map-text-secondary: #{$text-secondary};
+  --map-text-tertiary: #{$text-tertiary};
+  --map-text-inverse: #{$text-inverse};
+  --map-color-primary: #{$color-primary};
+  --map-color-primary-light: #{$color-primary-light};
+  --map-color-primary-dark: #{$color-primary-dark};
+  --map-color-success: #{$color-success};
+  --map-color-warning: #{$color-warning};
+  --map-color-error: #{$color-error};
+  --map-color-info: #{$color-info};
+}
+
 * {
   @include touch-device {
     -webkit-tap-highlight-color: transparent;
@@ -13,7 +33,6 @@
   }
 }
 
-// Allow text selection for specific elements
 p,
 span,
 div,
@@ -28,24 +47,25 @@ button {
   }
 }
 
-.main-container {
-  width: $main-container-width;
+.map-main-container {
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 $spacing-md;
-
-  @include mobile {
-    width: $container-mobile;
-    padding: 0 $spacing-sm;
-  }
+  padding: 0 $spacing-sm;
+  box-sizing: border-box;
 
   @include tablet {
     width: $container-tablet;
     padding: 0 $spacing-md;
   }
+
+  @include desktop {
+    width: $main-container-width;
+    padding: 0 $spacing-md;
+  }
 }
 
-.data-container {
+.map-data-container {
   display: flex;
   align-items: center;
   height: 100%;
@@ -66,7 +86,7 @@ button {
   }
 }
 
-.data__title {
+.map-data__title {
   display: flex;
   text-transform: capitalize;
 
@@ -79,6 +99,7 @@ button {
     &--name {
       font-size: $font-size-medium;
       font-weight: bold;
+      color: var(--map-color-primary, $color-primary);
     }
 
     &--subname {
@@ -92,7 +113,7 @@ button {
   }
 }
 
-.information {
+.map-information {
   &__basic {
     display: flex;
     flex-direction: column;

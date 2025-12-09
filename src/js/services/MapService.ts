@@ -1,5 +1,6 @@
 import * as Leaflet from 'leaflet';
 import { Point } from '../types/Point';
+import tippy from 'tippy.js';
 
 export class MapService {
   private map: Leaflet.Map;
@@ -28,7 +29,7 @@ export class MapService {
     Leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      // Preload tiles for smoother navigation
+
       updateWhenZooming: true,
       updateWhenIdle: true,
       keepBuffer: 2,
@@ -66,10 +67,8 @@ export class MapService {
   }
 
   public async addMarkers(points: Point[]): Promise<void> {
-    // Preload all marker icons first for smoother rendering
     await this.preloadIcons(points);
 
-    // Add markers in batches to avoid blocking UI
     await this.addMarkersInBatches(points, 10);
   }
 
@@ -77,12 +76,10 @@ export class MapService {
     for (let i = 0; i < points.length; i += batchSize) {
       const batch = points.slice(i, i + batchSize);
 
-      // Add batch synchronously
       batch.forEach(point => {
         this.addMarker(point);
       });
 
-      // Wait for next frame before adding next batch
       await new Promise(resolve => requestAnimationFrame(resolve));
     }
   }
@@ -147,13 +144,12 @@ export class MapService {
         const categoryHTML = categoryPoints
           .map(point => {
             const subname = point.legendSubName
-              ? `<span class="legend-item__info--subname">${point.legendSubName}</span>`
+              ? `<span class="map-legend-item__info--subname">${point.legendSubName}</span>`
               : '';
             return `
-          <div class="legend-item" data-index="${points.indexOf(point)}" style="margin-bottom: 10px;">
-            <img src="${point.icon}" alt="svg" class="legend-item--icon">
-            <div class="legend-item__info">
-              <span class="legend-item__info--name" style="color: ${point.color}">${point.legendName}</span>
+          <div class="map-legend-item" data-index="${points.indexOf(point)}" style="margin-bottom: 10px;">
+            <img src="${point.icon}" alt="svg" class="map-legend-item--icon">
+            <div class="map-legend-item__info">
               ${subname}
             </div>
           </div>
@@ -161,9 +157,11 @@ export class MapService {
           })
           .join('');
 
+        const firstPointColor = categoryPoints[0]?.color || '#000000';
+
         return `
-        <div class="legend-category">
-          <div class="legend-category--name">${category}</div>
+        <div class="map-legend-category">
+          <div class="map-legend-category--name" style="color: ${firstPointColor}">${category}</div>
           ${categoryHTML}
         </div>
       `;
@@ -173,7 +171,7 @@ export class MapService {
     const legendControl = new Leaflet.Control({ position: 'bottomleft' });
 
     legendControl.onAdd = () => {
-      const div = Leaflet.DomUtil.create('div', 'legend');
+      const div = Leaflet.DomUtil.create('div', 'map-legend');
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(legendHTML, 'text/html');
@@ -185,9 +183,33 @@ export class MapService {
 
       div.appendChild(fragment);
 
+      Leaflet.DomEvent.disableScrollPropagation(div);
+      Leaflet.DomEvent.on(div, 'wheel', Leaflet.DomEvent.stopPropagation);
+
+      setTimeout(() => {
+        const subnameElements = Array.from(
+          div.querySelectorAll('.map-legend-item__info--subname')
+        ) as HTMLElement[];
+
+        subnameElements.forEach(element => {
+          const isTruncated = element.scrollWidth > element.clientWidth;
+
+          if (isTruncated && element.textContent) {
+            tippy(element, {
+              content: element.textContent,
+              placement: 'top',
+              theme: 'light',
+              arrow: true,
+              delay: [200, 0],
+              duration: [200, 150],
+            });
+          }
+        });
+      }, 0);
+
       div.addEventListener('click', e => {
         const target = e.target as HTMLElement;
-        const legendItem = target.closest('.legend-item');
+        const legendItem = target.closest('.map-legend-item');
         if (legendItem) {
           const index = parseInt(legendItem.getAttribute('data-index') || '0', 10);
           const point = points[index];
@@ -195,15 +217,11 @@ export class MapService {
           if (point) {
             const marker = this.markers[index];
 
-            // Close all open popups first and wait for close animation
             this.map.closePopup();
 
-            // Wait for popup to close before starting zoom
             setTimeout(() => {
-              // Add one-time listener for move end (setView triggers moveend)
               const onMoveEnd = () => {
                 if (marker) {
-                  // Disable autoPan temporarily to prevent map movement
                   const popup = marker.getPopup();
                   if (popup) {
                     const options = popup.options;
@@ -212,7 +230,6 @@ export class MapService {
 
                     marker.openPopup();
 
-                    // Restore autoPan after a short delay
                     setTimeout(() => {
                       options.autoPan = originalAutoPan;
                     }, 100);
@@ -230,7 +247,6 @@ export class MapService {
         }
       });
 
-      // Prevent dblclick on legend items
       div.addEventListener('dblclick', e => {
         e.stopPropagation();
       });
@@ -240,35 +256,30 @@ export class MapService {
 
     legendControl.addTo(this.map);
 
-    // Add mobile toggle button
     this.createMobileToggle();
 
-    // Prevent map scroll when hovering over legend
     this.preventMapScrollOnLegendHover();
 
-    // Set map bounds to focus on all points
     this.setMapBounds(points);
 
-    // Add reset view button
     this.addResetViewButton();
   }
 
   private createMobileToggle(): void {
     const toggleButton = document.createElement('button');
-    toggleButton.className = 'legend-toggle';
+    toggleButton.className = 'map-legend-toggle';
     toggleButton.innerHTML = '📋';
     toggleButton.setAttribute('aria-label', 'Toggle legend');
 
     document.body.appendChild(toggleButton);
 
     toggleButton.addEventListener('click', () => {
-      const legend = document.querySelector('.legend');
+      const legend = document.querySelector('.map-legend');
       if (legend) {
-        legend.classList.toggle('legend--open');
-        toggleButton.classList.toggle('legend-toggle--open');
+        legend.classList.toggle('map-legend--open');
+        toggleButton.classList.toggle('map-legend-toggle--open');
 
-        // Change icon with better emojis
-        if (legend.classList.contains('legend--open')) {
+        if (legend.classList.contains('map-legend--open')) {
           toggleButton.innerHTML = '✕';
         } else {
           toggleButton.innerHTML = '📋';
@@ -276,7 +287,6 @@ export class MapService {
       }
     });
 
-    // Add swipe down gesture to close legend
     let startY = 0;
     let currentY = 0;
     let isDragging = false;
@@ -296,9 +306,8 @@ export class MapService {
         const diffY = currentY - startY;
 
         if (diffY > 50) {
-          // Swipe down threshold
-          legend.classList.remove('legend--open');
-          toggleButton.classList.remove('legend-toggle--open');
+          legend.classList.remove('map-legend--open');
+          toggleButton.classList.remove('map-legend-toggle--open');
           toggleButton.innerHTML = '📋';
           isDragging = false;
         }
@@ -314,31 +323,25 @@ export class MapService {
     const legend = document.querySelector('.legend');
     if (!legend) return;
 
-    // Disable only zoom-related features when mouse enters legend, but keep dragging enabled
     legend.addEventListener('mouseenter', () => {
       this.map.scrollWheelZoom.disable();
       this.map.doubleClickZoom.disable();
       this.map.touchZoom.disable();
-      // Dragging is NOT disabled - panning is allowed
     });
 
-    // Re-enable zoom features when mouse leaves legend
     legend.addEventListener('mouseleave', () => {
       this.map.scrollWheelZoom.enable();
       this.map.doubleClickZoom.enable();
       this.map.touchZoom.enable();
     });
 
-    // Also handle mobile touch events - disable zoom only
     legend.addEventListener('touchstart', () => {
       this.map.scrollWheelZoom.disable();
       this.map.doubleClickZoom.disable();
       this.map.touchZoom.disable();
-      // Dragging is NOT disabled - panning is allowed
     });
 
     legend.addEventListener('touchend', () => {
-      // Small delay to prevent immediate re-enabling
       setTimeout(() => {
         this.map.scrollWheelZoom.enable();
         this.map.doubleClickZoom.enable();
@@ -350,7 +353,6 @@ export class MapService {
   private setMapBounds(points: Point[]): void {
     if (points.length === 0) return;
 
-    // Create bounds from all points
     const bounds = Leaflet.latLngBounds([]);
     points.forEach(point => {
       bounds.extend([point.latitude, point.longitude]);
@@ -360,12 +362,10 @@ export class MapService {
       padding: [30, 30],
     };
 
-    // Fit map to show all points
     this.map.fitBounds(bounds, configBoundsOptions);
   }
 
   private addResetViewButton(): void {
-    // Create custom control for reset view
     const ResetViewControl = Leaflet.Control.extend({
       onAdd: () => {
         const button = document.createElement('button');
@@ -405,12 +405,10 @@ export class MapService {
       },
     });
 
-    // Add control to map
     this.map.addControl(new ResetViewControl({ position: 'topright' }));
   }
 
   private zoomToPoint(lat: number, lng: number): void {
-    // Adjust longitude slightly to offset the popup position
     const modifiedValue = {
       lat: lat,
       lng: lng - 0.015,

@@ -1,10 +1,11 @@
 @import 'variables';
 
-.legend {
-  background-color: $white;
+.map-legend {
+  background-color: var(--map-bg-secondary, $bg-secondary);
   padding: $legend-padding;
-  border-right: 1px solid $border-color;
-  border-top: 1px solid $border-color;
+  padding-right: 2px;
+  border-right: 1px solid var(--map-border-primary, $border-primary);
+  border-top: 1px solid var(--map-border-primary, $border-primary);
   border-radius: $legend-border-radius;
   box-shadow: 0 2px 8px $shadow-light;
   display: flex;
@@ -16,6 +17,27 @@
   left: 0;
   z-index: $z-index-legend;
   opacity: $opacity-legend;
+  pointer-events: auto; // Umożliwia interakcję z legendą
+
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 1px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
 
   @include mobile {
     width: $legend-width-mobile;
@@ -38,23 +60,26 @@
       rgba(255, 255, 255, 0.95) 0%,
       rgba(255, 255, 255, 0.9) 100%
     );
-    border-top: 3px solid $primary-color;
+    border-top: 3px solid var(--map-color-primary, $color-primary);
 
-    &.legend--open {
+    &.map-legend--open {
       top: 0;
       box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
     }
   }
 
-  // Mobile legend header
   &::before {
     @include mobile {
       content: 'Legenda';
       display: block;
       position: sticky;
       top: 0;
-      background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%);
-      color: $white;
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
       padding: $spacing-md $spacing-lg;
       font-size: $font-size-medium;
       font-weight: bold;
@@ -79,7 +104,6 @@
     }
   }
 
-  // Desktop: show scroll cursor when hovering
   @include desktop {
     &:hover {
       cursor: auto;
@@ -87,7 +111,7 @@
   }
 }
 
-.legend-category {
+.map-legend-category {
   margin: $spacing-xs 0;
 
   &--name {
@@ -95,13 +119,14 @@
     font-weight: bold;
     text-transform: capitalize;
     margin-bottom: $spacing-xs;
-    padding: $spacing-xs;
-    background-color: $gray-light;
+    padding: 4px;
+    background-color: var(--map-bg-tertiary, $bg-tertiary);
     border-radius: $border-radius-sm;
+    color: var(--map-text-primary, $text-primary);
   }
 }
 
-.legend-item {
+.map-legend-item {
   margin: $spacing-xs 0;
   display: flex;
   align-items: center;
@@ -111,6 +136,8 @@
   transition: background-color $transition-fast;
   min-height: $touch-target-min;
   font-size: $font-size-small;
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
     padding: $spacing-md;
@@ -123,7 +150,7 @@
   }
 
   &:hover {
-    background-color: $gray-light;
+    background-color: var(--map-bg-secondary, $bg-secondary);
   }
 
   @include touch-device {
@@ -157,6 +184,8 @@
     text-transform: capitalize;
     margin-left: $spacing-xs;
     word-break: keep-all;
+    flex: 1;
+    min-width: 0;
 
     &--name {
       font-size: $font-size-small;
@@ -164,13 +193,19 @@
     }
 
     &--subname {
-      font-size: $font-size-small;
+      font-size: $font-size-md;
+      text-align: start;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+      min-width: 0;
+      color: var(--map-text-primary, $text-primary);
     }
   }
 }
 
-// Mobile legend toggle button
-.legend-toggle {
+.map-legend-toggle {
   display: none;
 
   @include mobile {
@@ -179,8 +214,12 @@
     top: $spacing-md;
     left: $spacing-md;
     z-index: $z-index-legend + 20;
-    background: linear-gradient(135deg, $white 0%, #f8f9fa 100%);
-    border: 2px solid $primary-color;
+    background: linear-gradient(
+      135deg,
+      var(--map-bg-primary, $bg-primary) 0%,
+      var(--map-bg-secondary, $bg-secondary) 100%
+    );
+    border: 2px solid var(--map-color-primary, $color-primary);
     border-radius: $border-radius-full;
     padding: $spacing-md;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -190,14 +229,18 @@
     align-items: center;
     justify-content: center;
     font-size: $font-size-medium;
-    color: $primary-color;
+    color: var(--map-color-primary, $color-primary);
     font-weight: bold;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(10px);
 
     &:hover {
-      background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%);
-      color: $white;
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
       transform: scale(1.05);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     }
@@ -207,59 +250,40 @@
     }
 
     &--open {
-      background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%);
-      color: $white;
+      background: linear-gradient(
+        135deg,
+        var(--map-color-primary, $color-primary) 0%,
+        var(--map-color-primary-light, $color-primary-light) 100%
+      );
+      color: var(--map-text-inverse, $text-inverse);
       transform: rotate(90deg);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
   }
 }
 
-// Mobile legend enhancements
 @include mobile {
-  .legend {
-    // Smooth scrolling
-    scroll-behavior: smooth;
-
-    // Custom scrollbar
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 2px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: $primary-color;
-      border-radius: 2px;
-
-      &:hover {
-        background: lighten($primary-color, 10%);
-      }
-    }
-
-    // Add padding for header
+  .map-legend {
     padding-top: 0;
   }
 
-  .legend-category {
+  .map-legend-category {
     margin: $spacing-sm 0;
 
     &--name {
       background: rgba(255, 255, 255, 0.8);
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--map-border-light, $border-light);
       font-size: $font-size-text;
       margin-bottom: $spacing-sm;
-      padding: $spacing-sm $spacing-md;
+      padding: 4px;
       border-radius: $border-radius-md;
       backdrop-filter: blur(5px);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      color: var(--map-text-primary, $text-primary);
     }
   }
 
-  .legend-item {
+  .map-legend-item {
     &--icon {
       width: 24px;
       height: 24px;
@@ -271,14 +295,23 @@
     }
 
     &__info {
+      flex: 1;
+      min-width: 0;
+
       &--name {
         font-size: $font-size-small;
         font-weight: 600;
       }
 
       &--subname {
-        font-size: $font-size-tiny;
+        font-size: $font-size-md;
         opacity: 0.8;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        min-width: 0;
+        color: var(--map-text-primary, $text-primary);
       }
     }
   }
